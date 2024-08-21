@@ -9,8 +9,8 @@ export default defineConfig({
     host: true, // This will bind the server to 0.0.0.0
   },
   build: {
-    outDir: '../dist', // This will place the build output in the project root 'dist' folder
+    outDir: "../dist", // This will place the build output in the project root 'dist' folder
     emptyOutDir: true, // Ensures that the output directory is cleared before building
   },
-  base: '/pulse-finder/', // Set the base path for GitHub Pages
+  base: "/pulse-finder/", // Set the base path for GitHub Pages
 });
