@@ -1,0 +1,12 @@
+services:
+  web-app:
+    container_name: web-app-node
+    build:
+      dockerfile: docker/Dockerfile
+      context: .
+    ports:
+      - "3100:3000"
+    volumes:
+      - .:/usr/src/app
+    stdin_open: true
+    tty: true

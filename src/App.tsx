@@ -1,4 +1,7 @@
 import { FC, ReactElement, memo } from "react";
+import { BrowserRouter as Router } from "react-router-dom";
+import Layout from "./Layout";
+import { NavigationBarProvider } from "./domains/NavigationBar/context/NavigationBarProvider";
 
 /**
  * App component that serves as the root component of the application.
@@ -6,7 +9,13 @@ import { FC, ReactElement, memo } from "react";
  * @returns {ReactElement} The rendered App component.
  */
 const App: FC = (): ReactElement => {
-    return <h1>Hello</h1>
+  return (
+    <NavigationBarProvider>
+      <Router>
+        <Layout />
+      </Router>
+    </NavigationBarProvider>
+  );
 };
 
 export default memo(App);
