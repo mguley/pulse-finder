@@ -1,8 +1,8 @@
 import { FC, ReactElement, memo } from "react";
-import { KeyMetricsProvider } from "../context/KeyMetricsContext";
-import { JobStatusChartProvider } from "../context/JobStatusChartContext";
+import DashboardProviders from "../components/DashboardProviders";
 import KeyMetrics from "../components/KeyMetrics";
 import JobStatusChart from "../components/JobStatusChart";
+import RecentActivityFeed from "../components/RecentActivityFeed";
 import { Box, Container } from "@mui/material";
 
 /**
@@ -13,16 +13,17 @@ import { Box, Container } from "@mui/material";
 const DashboardOverview: FC = (): ReactElement => {
   return (
     <>
-      <Container sx={{ mt: 4, mb: 4 }}>
-        <KeyMetricsProvider>
+      <DashboardProviders>
+        <Container sx={{ mt: 4, mb: 4 }}>
           <KeyMetrics />
-        </KeyMetricsProvider>
-        <Box sx={{ mt: 4 }}>
-          <JobStatusChartProvider>
+          <Box sx={{ mt: 4 }}>
             <JobStatusChart />
-          </JobStatusChartProvider>
-        </Box>
-      </Container>
+          </Box>
+          <Box sx={{ mt: 4 }}>
+            <RecentActivityFeed />
+          </Box>
+        </Container>
+      </DashboardProviders>
     </>
   );
 };
