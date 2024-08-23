@@ -1,5 +1,6 @@
 import { FC, ReactElement, ReactNode, memo } from "react";
 import { JobsTableProvider } from "../context/JobsTableContext";
+import { JobsDetailsModalProvider } from "../context/JobDetailsModalContext";
 
 interface JobsProvidersProps {
   children: ReactNode;
@@ -10,8 +11,9 @@ interface JobsProvidersProps {
  * It serves as a wrapper that provides all necessary contexts to its children components, ensuring
  * that they have access to the appropriate state and data.
  *
- * Contexts provided:
- * - JobsTableContext: Manages the state and data for jobs grid.
+ * The following contexts are provided:
+ * - JobsTableContext: Manages the state and data for the job vacancies grid.
+ * - JobDetailsModalContext: Manages the state and data for the job details modal.
  *
  * @param {JobsProvidersProps} props - The props for the JobsProviders component.
  * @returns {ReactElement} The rendered component that provides the required contexts to its children.
@@ -19,7 +21,11 @@ interface JobsProvidersProps {
 const JobsProviders: FC<JobsProvidersProps> = ({
   children,
 }: JobsProvidersProps): ReactElement => {
-  return <JobsTableProvider>{children}</JobsTableProvider>;
+  return (
+    <JobsTableProvider>
+      <JobsDetailsModalProvider>{children}</JobsDetailsModalProvider>
+    </JobsTableProvider>
+  );
 };
 
 export default memo(JobsProviders);

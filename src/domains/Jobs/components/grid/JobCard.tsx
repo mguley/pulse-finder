@@ -1,6 +1,8 @@
 import { FC, ReactElement, memo } from "react";
 import { Card, CardContent, Typography } from "@mui/material";
 import { JobVacancy } from "../../services/jobService";
+import { useJobDetailsModal } from "../../context/JobDetailsModalContext";
+import JobDetailsModal from "./JobDetailsModal";
 
 interface JobCardProps {
   job: JobVacancy;
@@ -8,22 +10,39 @@ interface JobCardProps {
 
 /**
  * JobCard component is a presentational component that displays the details of a single job vacancy.
+ * On clicking the card, a modal pops us with detailed information about the job.
  *
  * @param {JobVacancy} job - The job vacancy object containing details to display.
  * @returns {ReactElement} The rendered component that displays a job vacancy.
  */
-const JobCard: FC<JobCardProps> = ({
-  job: { title, company },
-}: JobCardProps): ReactElement => {
+const JobCard: FC<JobCardProps> = ({ job }: JobCardProps): ReactElement => {
+  const { open, selectedJob, handleOpen, handleClose } = useJobDetailsModal();
+
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Typography variant="h6" component="div">
-          {title}
-        </Typography>
-        <Typography color="text.secondary">{company}</Typography>
-      </CardContent>
-    </Card>
+    <>
+      <Card
+        variant="outlined"
+        sx={{
+          transition: "background-color 0.3s",
+          "&:hover": {
+            backgroundColor: "#f5f5f5",
+            cursor: "pointer",
+          },
+        }}
+        onClick={() => handleOpen(job)}
+      >
+        <CardContent>
+          <Typography variant="h6" component="div">
+            {job.title}
+          </Typography>
+          <Typography color="text.secondary">{job.company}</Typography>
+        </CardContent>
+      </Card>
+
+      {selectedJob && (
+        <JobDetailsModal job={selectedJob} open={open} onClose={handleClose} />
+      )}
+    </>
   );
 };
 
