@@ -8,7 +8,8 @@ interface PaginationProps {
 }
 
 /**
- * JobsPagination component renders a pagination control to navigate between pages of job vacancies.
+ * JobsPagination component renders pagination controls for navigating through pages of job vacancies.
+ * It handles the current page state and triggers the appropriate callback when the page is changed.
  *
  * @param {number} currentPage - The current page number.
  * @param {number} totalPages - The total number of pages available.
@@ -36,7 +37,6 @@ const JobsPagination: FC<PaginationProps> = ({
         variant="outlined"
         shape="rounded"
         color="primary"
-        src={{ mt: 2 }}
       />
     </Box>
   );
