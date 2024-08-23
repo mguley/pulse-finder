@@ -13,8 +13,14 @@ import Typography from "@mui/material/Typography";
  * @returns {ReactElement} The rendered component that displays job vacancies in a paginated grid.
  */
 const JobsTable: FC = (): ReactElement => {
-  const { jobs, itemsPerPage, currentPage, setCurrentPage, loading, error } =
-    useJobs();
+  const {
+    filteredJobs,
+    itemsPerPage,
+    currentPage,
+    setCurrentPage,
+    loading,
+    error,
+  } = useJobs();
 
   if (loading) {
     return <LoadingSpinner />;
@@ -28,15 +34,15 @@ const JobsTable: FC = (): ReactElement => {
     );
   }
 
-  if (!jobs || jobs.length === 0) {
+  if (!filteredJobs || filteredJobs.length === 0) {
     return <Typography variant="h6">No jobs available.</Typography>;
   }
 
   // Calculate the total pages based on the number of jobs and items per page
-  const totalPages = Math.ceil(jobs.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
 
   // Calculate the slice of jobs to display for the current page
-  const displayedJobs = jobs.slice(
+  const displayedJobs = filteredJobs.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );

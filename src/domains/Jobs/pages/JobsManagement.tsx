@@ -1,6 +1,7 @@
 import { FC, ReactElement, memo } from "react";
 import JobsProviders from "../components/JobsProviders";
 import JobsTable from "../components/grid/JobsTable";
+import SearchJobs from "../components/search/SearchJobs";
 
 /**
  * JobsManagement component serves as the main entry point for the Jobs Management tab.
@@ -10,6 +11,7 @@ import JobsTable from "../components/grid/JobsTable";
 const JobsManagement: FC = (): ReactElement => {
   return (
     <JobsProviders>
+      <SearchJobs />
       <JobsTable />
     </JobsProviders>
   );
