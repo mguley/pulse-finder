@@ -1,0 +1,23 @@
+{
+  "name": "real-time-server",
+  "version": "1.0.0",
+  "description": "Real-time server for PulseFinder using Node.js and Socket.IO with TypeScript",
+  "main": "dist/index.js",
+  "scripts": {
+    "init": "npm install --verbose",
+    "start": "npm run init && ts-node src/index.ts",
+    "build": "tsc",
+    "dev": "npm run init && nodemon --exec ts-node src/index.ts",
+    "format": "prettier --write 'src/*.ts'"
+  },
+  "dependencies": {
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.2",
+    "nodemon": "^2.0.22",
+    "prettier": "^3.3.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}
