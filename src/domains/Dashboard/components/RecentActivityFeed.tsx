@@ -1,7 +1,7 @@
 import { FC, ReactElement, memo } from "react";
 import { Card, CardContent, Typography, Box, Grid } from "@mui/material";
 import { useRecentActivityFeed } from "../context/RecentActivityFeedContext";
-import { RecentActivityService as IRecentActivity } from "../services/recentActivityService";
+import { RecentActivity } from "../services/recentActivity/types";
 import LoadingSpinner from "../../../shared/components/LoadingSpinner";
 
 /**
@@ -53,7 +53,7 @@ const RecentActivityFeed: FC = (): ReactElement => {
           {/* Data Rows */}
           {recentActivities.map(
             (
-              { jobId, status, startTime, endTime }: IRecentActivity,
+              { jobId, status, startTime, endTime }: RecentActivity,
               index: number,
             ) => (
               <Grid container spacing={2} key={index}>
