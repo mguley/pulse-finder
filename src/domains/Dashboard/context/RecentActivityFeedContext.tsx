@@ -62,7 +62,9 @@ export const RecentActivityFeedProvider: FC<
 
   useEffect(() => {
     try {
-      const socketService = new SocketService("http://localhost:4000");
+      const socketService = new SocketService(
+        "https://github-io-pulse-finder.loca.lt",
+      );
       socketService.connect();
       setIsConnected(socketService.isConnected());
 

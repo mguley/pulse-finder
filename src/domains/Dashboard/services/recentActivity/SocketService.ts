@@ -28,18 +28,10 @@ export class SocketService implements RecentActivitySocket {
    */
   public connect(): void {
     if (!this.socket) {
-      this.socket = io(this.serverUrl);
-
-      this.socket.on("connect", () => {
-        console.log(
-          `Connected to ${this.serverUrl} with id: ${this.socket!.id}`,
-        );
-      });
-
-      this.socket.on("disconnect", () => {
-        console.log(
-          `Disconnected from ${this.serverUrl} with id: ${this.socket!.id}`,
-        );
+      this.socket = io(this.serverUrl, {
+        extraHeaders: {
+          "bypass-tunnel-reminder": "true", // Bypass the tunnel reminder
+        },
       });
     }
   }
