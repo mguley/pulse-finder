@@ -11,7 +11,8 @@ import {
   RecentActivity,
   RecentActivitiesSocketEvents,
 } from "../services/recentActivity/types";
-import { SocketService } from "../services/recentActivity/SocketService";
+import { EventHandler, WebSocket } from "../services/websocket/types";
+import { SocketService } from "../services/websocket/WebSocketService";
 
 /**
  * Represents the structure of the RecentActivityFeedContextType.
@@ -61,31 +62,44 @@ export const RecentActivityFeedProvider: FC<
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
+    /**
+     * Initializes the WebSocket service to establish a connection to the server.
+     */
+    const socketService: WebSocket = new SocketService();
+
+    /**
+     * Handles incoming 'NewActivity' events from the WebSocket connection.
+     *
+     * @param {RecentActivity} activity - The new activity data received from the WebSocket server.
+     */
+    const handleNewActivity = (activity: RecentActivity): void => {
+      setRecentActivities((prevState: RecentActivity[] | null) => {
+        return prevState ? [activity, ...prevState].slice(0, 3) : [activity];
+      });
+    };
+
+    /**
+     * Configures an event handler to listen for 'NewActivity' events.
+     *
+     * @property {string} eventName - The name of the event to listen for.
+     * @property {function} handler - The function to be called when the 'newActivity' event is emitted.
+     */
+    const eventHandler: EventHandler = {
+      eventName: RecentActivitiesSocketEvents.NewActivity,
+      handler: handleNewActivity,
+    };
+
     try {
-      const socketService = new SocketService(
-        "https://github-io-pulse-finder.loca.lt",
-      );
       socketService.connect();
       setIsConnected(socketService.isConnected());
-
-      socketService.on(
-        RecentActivitiesSocketEvents.NewActivity,
-        (activity: RecentActivity): void => {
-          setRecentActivities((prevState: RecentActivity[] | null) => {
-            if (prevState) {
-              const newState = [activity, ...prevState];
-              return newState.slice(0, 3);
-            }
-            return [activity];
-          });
-        },
-      );
+      socketService.on(eventHandler);
 
       return () => {
+        socketService.off(eventHandler);
         socketService.disconnect();
       };
     } catch (e) {
-      setError(e.message);
+      setError((e as Error)?.message || "An unknown error occurred");
     } finally {
       setLoading(false);
     }
