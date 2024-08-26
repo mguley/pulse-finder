@@ -1,9 +1,9 @@
 import { FC, ReactElement, memo } from "react";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { Card, CardContent, Typography } from "@mui/material";
-import { useJobStatusChart } from "../context/JobStatusChartContext";
-import { JobStatusService as IJobStatus } from "../services/jobStatusService";
-import LoadingSpinner from "../../../shared/components/LoadingSpinner";
+import { useJobStatusChart } from "../../context/JobStatusChartContext";
+import { JobStatusService as IJobStatus } from "../../services/jobStatusService";
+import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
 
 /**
  * JobStatusChart component that displays a pie chart of jobs statuses.

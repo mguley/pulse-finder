@@ -13,19 +13,9 @@ export interface RecentActivity {
   endTime: string;
 }
 
+/**
+ * Enum representing socket events for recent activities.
+ */
 export enum RecentActivitiesSocketEvents {
   NewActivity = "newActivity",
-}
-
-export interface EventHandler {
-  eventName: string;
-  handler: (...args: any[]) => void;
-}
-
-export interface RecentActivitySocket {
-  connect(): void;
-  on(eventName: string, handler: (...args: any[]) => void): void;
-  off(eventName: string, handler: (...args: any[]) => void): void;
-  disconnect(): void;
-  isConnected(): boolean;
 }
