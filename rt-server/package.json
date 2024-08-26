@@ -11,9 +11,11 @@
     "format": "prettier --write 'src/*.ts'"
   },
   "dependencies": {
+    "localtunnel": "^2.0.2",
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
+    "@types/localtunnel": "^2.0.4",
     "@types/node": "^20.4.2",
     "nodemon": "^2.0.22",
     "prettier": "^3.3.3",
