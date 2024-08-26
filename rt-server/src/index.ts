@@ -1,6 +1,11 @@
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { mockActivities } from "./mockData";
+import localtunnel from "localtunnel";
+import {
+  ActivityEmitter,
+  RandomActivityGenerator,
+} from "./emitter/ActivityEmitter";
+import { mockActivities } from "./mock/mockData";
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
@@ -9,34 +14,25 @@ const io = new Server(httpServer, {
   },
 });
 
+const activityGenerator = new RandomActivityGenerator(mockActivities);
+const activityEmitter = new ActivityEmitter(io, activityGenerator, {
+  intervalMs: 5000,
+});
+
 io.on("connection", (socket) => {
   console.log(`A user connected: ${socket.id}`);
-
-  // Function to emit a random activity every 5 seconds
-  const sendRandomActivity = (): void => {
-    const randomIndex = Math.floor(Math.random() * mockActivities.length);
-    const randomActivity = mockActivities[randomIndex];
-
-    socket.emit("newActivity", randomActivity);
-    console.log(
-      `Sent activity to ${socket.id}: ${JSON.stringify(randomActivity)}`,
-    );
-  };
-
-  // Send an activity immediately upon connection
-  sendRandomActivity();
-
-  // Set interval to send an activity every 5 seconds
-  const intervalId = setInterval(sendRandomActivity, 5000);
-
-  // Clear the interval when the user disconnects
-  socket.on("disconnect", () => {
-    clearInterval(intervalId);
-    console.log(`A user disconnected: ${socket.id}`);
-  });
+  activityEmitter.startEmitting(socket);
 });
 
 const PORT = process.env.PORT || 4000;
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
+
+  const tunnel = await localtunnel({
+    port: Number(PORT),
+    subdomain: "github-io-pulse-finder",
+  });
+  console.log(`Server is publicly accessible via ${tunnel.url}`);
+
+  tunnel.on("close", () => console.log(`Server is closed`));
 });
