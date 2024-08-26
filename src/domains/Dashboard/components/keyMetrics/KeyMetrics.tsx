@@ -1,8 +1,8 @@
 import { FC, ReactElement, memo } from "react";
 import { Grid, Card, CardContent, Typography } from "@mui/material";
-import { useKeyMetrics } from "../context/KeyMetricsContext";
-import { KeyMetricService as IKeyMetric } from "../services/keyMetricService";
-import LoadingSpinner from "../../../shared/components/LoadingSpinner";
+import { useKeyMetrics } from "../../context/KeyMetricsContext";
+import { KeyMetricService as IKeyMetric } from "../../services/keyMetricService";
+import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
 
 /**
  * KeyMetrics component that displays key metrics cards in the Dashboard overview.
@@ -39,8 +39,8 @@ const KeyMetrics: FC = (): ReactElement => {
           <Grid item xs={12} sm={4} key={index}>
             <Card sx={{ border: "1 px solid #ccc", boxShadow: 3 }}>
               <CardContent>
-                <Typography variant="h7">{title}</Typography>
-                <Typography variant="h6">{value}</Typography>
+                <Typography variant="h6">{title}</Typography>
+                <Typography variant="h5">{value}</Typography>
               </CardContent>
             </Card>
           </Grid>

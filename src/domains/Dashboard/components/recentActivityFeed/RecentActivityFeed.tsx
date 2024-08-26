@@ -1,8 +1,8 @@
 import { FC, ReactElement, memo } from "react";
 import { Card, CardContent, Typography, Box, Grid } from "@mui/material";
-import { useRecentActivityFeed } from "../context/RecentActivityFeedContext";
-import { RecentActivity } from "../services/recentActivity/types";
-import LoadingSpinner from "../../../shared/components/LoadingSpinner";
+import { useRecentActivityFeed } from "../../context/RecentActivityFeedContext";
+import { RecentActivity } from "../../services/recentActivity/types";
+import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
 
 /**
  * RecentActivityFeed component that displays a list of recent job activities.
