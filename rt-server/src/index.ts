@@ -6,6 +6,7 @@ import {
   RandomActivityGenerator,
 } from "./emitter/ActivityEmitter";
 import { mockActivities } from "./mock/mockData";
+import { AESEncryption } from "./utils/Encryption";
 
 /**
  * Creates and configures the HTTP server and Socket.IO server.
@@ -33,13 +34,20 @@ const io = new Server(httpServer, {
  */
 const activityGenerator = new RandomActivityGenerator(mockActivities);
 
+const encryptor = new AESEncryption("12345678901234567890123456789012");
+
 /**
  * Creates an instance of ActivityEmitter to manage the emission of activities.
  * Activities are emitted every 5 seconds by default.
  */
-const activityEmitter = new ActivityEmitter(io, activityGenerator, {
-  intervalMs: 5000,
-});
+const activityEmitter = new ActivityEmitter(
+  io,
+  activityGenerator,
+  {
+    intervalMs: 5000,
+  },
+  encryptor,
+);
 
 /**
  * Handles new WebSocket connections.

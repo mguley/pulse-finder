@@ -1,5 +1,6 @@
 import type { Server, Socket } from "socket.io";
 import type { RecentActivity } from "../types";
+import type { Encryption, EncryptionResult } from "../utils/Encryption";
 
 /**
  * Represents a generic activity generator.
@@ -62,20 +63,24 @@ export class ActivityEmitter {
   private io: Server;
   private activityGenerator: ActivityGenerator;
   private readonly intervalMs: number;
+  private readonly encryptor: Encryption;
 
   /**
    * @param {Server} io - The Socket.IO server instance used to manage WebSocket connections.
    * @param {ActivityGenerator} activityGenerator - An instance of ActivityGenerator used to generate activities.
    * @param {ActivityEmitterConfig} config - Optional configuration for the emission interval.
+   * @param {Encryption} encryptor - Encryptor.
    */
   constructor(
     io: Server,
     activityGenerator: ActivityGenerator,
     config: ActivityEmitterConfig = {},
+    encryptor: Encryption,
   ) {
     this.io = io;
     this.activityGenerator = activityGenerator;
     this.intervalMs = config.intervalMs || 5000;
+    this.encryptor = encryptor;
   }
 
   /**
@@ -87,8 +92,13 @@ export class ActivityEmitter {
    */
   public startEmitting(socket: Socket): void {
     const sendRandomActivity = (): void => {
-      const randomActivity = this.activityGenerator.generateActivity();
-      socket.emit("newActivity", randomActivity);
+      const randomActivity: RecentActivity =
+        this.activityGenerator.generateActivity();
+      const payload: EncryptionResult = this.encryptor.encrypt(
+        JSON.stringify(randomActivity),
+      );
+
+      socket.emit("newActivity", payload);
       console.log(
         `Sent activity to ${socket.id}: ${JSON.stringify(randomActivity)}`,
       );
