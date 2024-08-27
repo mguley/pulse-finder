@@ -1,16 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  FC,
-  ReactNode,
-  ReactElement,
-  useEffect,
-} from "react";
-import {
-  KeyMetricService as KeyMetric,
-  fetchKeyMetrics,
-} from "../services/keyMetricService";
+import type { FC, ReactNode, ReactElement } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import type { KeyMetricService as KeyMetric } from "../services/keyMetricService";
+import { fetchKeyMetrics } from "../services/keyMetricService";
 
 /**
  * Represents the structure of the KeyMetricsContext.

@@ -1,4 +1,5 @@
-import { FC, ReactElement, memo } from "react";
+import type { FC, ReactElement } from "react";
+import { memo } from "react";
 import DashboardProviders from "../components/DashboardProviders";
 import KeyMetrics from "../components/keyMetrics/KeyMetrics";
 import JobStatusChart from "../components/jobStatusChart/JobStatusChart";

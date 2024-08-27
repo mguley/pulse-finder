@@ -1,5 +1,6 @@
-import { io, Socket } from "socket.io-client";
-import { WebSocket, EventHandler } from "./types";
+import type { Socket } from "socket.io-client";
+import { io } from "socket.io-client";
+import type { WebSocket, EventHandler } from "./types";
 
 /**
  * Manages a WebSocket connection.

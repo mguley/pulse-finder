@@ -1,7 +1,8 @@
-import { FC, ReactElement, memo } from "react";
+import type { FC, ReactElement } from "react";
+import { memo } from "react";
 import { Card, CardContent, Typography, Box, Grid } from "@mui/material";
 import { useRecentActivityFeed } from "../../context/RecentActivityFeedContext";
-import { RecentActivity } from "../../services/recentActivity/types";
+import type { RecentActivity } from "../../services/recentActivity/types";
 import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
 
 /**

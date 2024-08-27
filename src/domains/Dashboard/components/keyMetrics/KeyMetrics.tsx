@@ -1,7 +1,8 @@
-import { FC, ReactElement, memo } from "react";
+import type { FC, ReactElement } from "react";
+import { memo } from "react";
 import { Grid, Card, CardContent, Typography } from "@mui/material";
 import { useKeyMetrics } from "../../context/KeyMetricsContext";
-import { KeyMetricService as IKeyMetric } from "../../services/keyMetricService";
+import type { KeyMetricService as IKeyMetric } from "../../services/keyMetricService";
 import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
 
 /**
