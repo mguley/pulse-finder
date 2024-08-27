@@ -4,6 +4,8 @@ import type { RecentActivity } from "../services/recentActivity/types";
 import { RecentActivitiesSocketEvents } from "../services/recentActivity/types";
 import type { EventHandler, WebSocket } from "../services/websocket/types";
 import { SocketService } from "../services/websocket/WebSocketService";
+import type { EncryptionResult } from "../services/Encryption";
+import { handleActivityDecryption } from "../utils/activityDecryption";
 
 /**
  * Represents the structure of the RecentActivityFeedContextType.
@@ -63,9 +65,12 @@ export const RecentActivityFeedProvider: FC<
      *
      * @param {RecentActivity} activity - The new activity data received from the WebSocket server.
      */
-    const handleNewActivity = (activity: RecentActivity): void => {
+    const handleNewActivity = (
+      activity: RecentActivity | EncryptionResult,
+    ): void => {
+      const data: RecentActivity = handleActivityDecryption(activity);
       setRecentActivities((prevState: RecentActivity[] | null) => {
-        return prevState ? [activity, ...prevState].slice(0, 3) : [activity];
+        return prevState ? [data, ...prevState].slice(0, 3) : [data];
       });
       setLoading(false);
     };
