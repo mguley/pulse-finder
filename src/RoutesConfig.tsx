@@ -1,4 +1,5 @@
-import { FC, ReactElement, memo } from "react";
+import type { FC, ReactElement } from "react";
+import { memo } from "react";
 import { Route, Routes } from "react-router-dom";
 import DashboardOverview from "./domains/Dashboard/pages/DashboardOverview";
 import JobsManagement from "./domains/Jobs/pages/JobsManagement";

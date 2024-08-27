@@ -1,4 +1,5 @@
-import { FC, ReactElement, memo } from "react";
+import type { FC, ReactElement } from "react";
+import { memo } from "react";
 import { CircularProgress, Box } from "@mui/material";
 
 /**

@@ -1,10 +1,9 @@
-import { FC, ReactElement, memo } from "react";
+import type { FC, ReactElement } from "react";
+import { memo } from "react";
 import { Tabs, Box } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  useNavigationBar,
-  NavigationItem,
-} from "../context/NavigationBarProvider";
+import type { NavigationItem } from "../context/NavigationBarProvider";
+import { useNavigationBar } from "../context/NavigationBarProvider";
 import NavigationTab from "./NavigationTab";
 
 /**

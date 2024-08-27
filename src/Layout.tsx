@@ -1,4 +1,5 @@
-import { FC, ReactElement, memo } from "react";
+import type { FC, ReactElement } from "react";
+import { memo } from "react";
 import { Box, Container } from "@mui/material";
 import RoutesConfig from "./RoutesConfig";
 import NavigationBar from "./domains/NavigationBar/pages/NavigationBar";
