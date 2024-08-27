@@ -1,6 +1,7 @@
-import { FC, ReactElement, memo } from "react";
+import type { FC, ReactElement } from "react";
+import { memo } from "react";
 import { Modal, Box, Typography } from "@mui/material";
-import { JobVacancy } from "../../services/jobService";
+import type { JobVacancy } from "../../services/jobService";
 
 interface JobDetailsModalProps {
   job: JobVacancy;

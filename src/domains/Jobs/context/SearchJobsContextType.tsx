@@ -1,11 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  FC,
-  ReactNode,
-  ReactElement,
-} from "react";
+import type { FC, ReactNode, ReactElement } from "react";
+import { createContext, useContext, useState } from "react";
 
 /**
  * Represents the structure of the SearchJobsContext.

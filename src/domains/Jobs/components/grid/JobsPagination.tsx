@@ -1,4 +1,5 @@
-import { FC, ReactElement, memo, ChangeEvent } from "react";
+import type { FC, ReactElement, ChangeEvent } from "react";
+import { memo } from "react";
 import { Pagination, Box } from "@mui/material";
 
 interface PaginationProps {

@@ -1,12 +1,6 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  FC,
-  ReactNode,
-  ReactElement,
-} from "react";
-import { JobVacancy } from "../services/jobService";
+import type { FC, ReactNode, ReactElement } from "react";
+import { createContext, useContext, useState } from "react";
+import type { JobVacancy } from "../services/jobService";
 
 /**
  * Represents the structure of the JobDetailsModalContext.
