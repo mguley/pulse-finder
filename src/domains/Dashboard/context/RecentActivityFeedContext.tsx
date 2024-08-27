@@ -67,6 +67,7 @@ export const RecentActivityFeedProvider: FC<
       setRecentActivities((prevState: RecentActivity[] | null) => {
         return prevState ? [activity, ...prevState].slice(0, 3) : [activity];
       });
+      setLoading(false);
     };
 
     /**
@@ -91,8 +92,6 @@ export const RecentActivityFeedProvider: FC<
       };
     } catch (e) {
       setError((e as Error)?.message || "An unknown error occurred");
-    } finally {
-      setLoading(false);
     }
   }, []);
 
