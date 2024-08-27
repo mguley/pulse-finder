@@ -1,4 +1,5 @@
-import { FC, ReactElement, ReactNode, memo } from "react";
+import type { FC, ReactElement, ReactNode } from "react";
+import { memo } from "react";
 import { JobsTableProvider } from "../context/JobsTableContext";
 import { JobsDetailsModalProvider } from "../context/JobDetailsModalContext";
 import { SearchJobsProvider } from "../context/SearchJobsContextType";

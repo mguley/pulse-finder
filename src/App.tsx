@@ -1,4 +1,5 @@
-import { FC, ReactElement, memo } from "react";
+import type { FC, ReactElement } from "react";
+import { memo } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 import Layout from "./Layout";
 import { NavigationBarProvider } from "./domains/NavigationBar/context/NavigationBarProvider";

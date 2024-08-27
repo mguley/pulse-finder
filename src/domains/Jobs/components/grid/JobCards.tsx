@@ -1,7 +1,8 @@
-import { FC, ReactElement, memo } from "react";
+import type { FC, ReactElement } from "react";
+import { memo } from "react";
 import { Grid } from "@mui/material";
 import JobCard from "./JobCard";
-import { JobVacancy } from "../../services/jobService";
+import type { JobVacancy } from "../../services/jobService";
 
 interface JobCardsProps {
   jobs: JobVacancy[];

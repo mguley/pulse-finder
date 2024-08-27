@@ -1,5 +1,5 @@
-import { Server, Socket } from "socket.io";
-import { RecentActivity } from "../types";
+import type { Server, Socket } from "socket.io";
+import type { RecentActivity } from "../types";
 
 /**
  * Represents a generic activity generator.

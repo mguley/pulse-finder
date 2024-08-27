@@ -1,17 +1,8 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  FC,
-  ReactNode,
-  ReactElement,
-  useEffect,
-} from "react";
-import {
-  RecentActivity,
-  RecentActivitiesSocketEvents,
-} from "../services/recentActivity/types";
-import { EventHandler, WebSocket } from "../services/websocket/types";
+import type { FC, ReactNode, ReactElement } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import type { RecentActivity } from "../services/recentActivity/types";
+import { RecentActivitiesSocketEvents } from "../services/recentActivity/types";
+import type { EventHandler, WebSocket } from "../services/websocket/types";
 import { SocketService } from "../services/websocket/WebSocketService";
 
 /**

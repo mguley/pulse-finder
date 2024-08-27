@@ -1,4 +1,4 @@
-import { RecentActivity } from "../types";
+import type { RecentActivity } from "../types";
 
 /**
  * Utility function to generate a random date within the range of +/- 15 minutes from now.

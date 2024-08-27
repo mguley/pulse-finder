@@ -1,4 +1,5 @@
-import { FC, ReactElement, memo } from "react";
+import type { FC, ReactElement } from "react";
+import { memo } from "react";
 import { AppBar } from "@mui/material";
 import NavigationTabs from "../components/NavigationTabs";
 

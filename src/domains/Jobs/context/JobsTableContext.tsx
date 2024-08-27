@@ -1,17 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  FC,
-  ReactNode,
-  ReactElement,
-  useEffect,
-} from "react";
-import {
-  JobVacancy,
-  JobVacancyService,
-  fetchJobVacancies,
-} from "../services/jobService";
+import type { FC, ReactNode, ReactElement } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import type { JobVacancy, JobVacancyService } from "../services/jobService";
+import { fetchJobVacancies } from "../services/jobService";
 import { useSearchJobs } from "./SearchJobsContextType";
 
 /**

@@ -1,4 +1,5 @@
-import { FC, ReactElement, memo, ChangeEvent } from "react";
+import type { FC, ReactElement, ChangeEvent } from "react";
+import { memo } from "react";
 import { TextField } from "@mui/material";
 import { useSearchJobs } from "../../context/SearchJobsContextType";
 

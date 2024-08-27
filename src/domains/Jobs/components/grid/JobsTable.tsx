@@ -1,4 +1,5 @@
-import { FC, ReactElement, memo, ChangeEvent } from "react";
+import type { FC, ReactElement, ChangeEvent } from "react";
+import { memo } from "react";
 import JobCards from "./JobCards";
 import JobsPagination from "./JobsPagination";
 import { useJobs } from "../../context/JobsTableContext";

@@ -1,4 +1,5 @@
-import { FC, ReactElement, ReactNode, memo } from "react";
+import type { FC, ReactElement, ReactNode } from "react";
+import { memo } from "react";
 import { KeyMetricsProvider } from "../context/KeyMetricsContext";
 import { JobStatusChartProvider } from "../context/JobStatusChartContext";
 import { RecentActivityFeedProvider } from "../context/RecentActivityFeedContext";

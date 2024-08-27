@@ -1,16 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  FC,
-  ReactNode,
-  ReactElement,
-  useEffect,
-} from "react";
-import {
-  JobStatusService as JobStatus,
-  fetchJobStatusData,
-} from "../services/jobStatusService";
+import type { FC, ReactNode, ReactElement } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import type { JobStatusService as JobStatus } from "../services/jobStatusService";
+import { fetchJobStatusData } from "../services/jobStatusService";
 
 /**
  * Represents the structure of the JobStatusChartContext.
