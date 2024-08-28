@@ -1,11 +1,13 @@
 import type { FC, ReactNode, ReactElement } from "react";
 import { createContext, useContext, useState, useEffect } from "react";
-import type { RecentActivity } from "../services/recentActivity/types";
-import { RecentActivitiesSocketEvents } from "../services/recentActivity/types";
+import {
+  RecentActivitiesSocketEvents,
+  type RecentActivity,
+} from "../services/recentActivity/types";
 import type { EventHandler, WebSocket } from "../services/websocket/types";
 import { SocketService } from "../services/websocket/WebSocketService";
 import type { EncryptionResult } from "../services/Encryption";
-import { handleActivityDecryption } from "../utils/activityDecryption";
+import { handleDecryption } from "../utils/activityDecryption";
 
 /**
  * Represents the structure of the RecentActivityFeedContextType.
@@ -13,13 +15,11 @@ import { handleActivityDecryption } from "../utils/activityDecryption";
  * @property {RecentActivity[] | null} recentActivities - An array of recent activities or null if not loaded.
  * @property {boolean} loading - A flag indicating whether the recent activities are being loaded.
  * @property {string | null} error - An error message if the recent activities fail to load, otherwise null.
- * @property {boolean} isConnected - A flag indicating whether the socket connection is established.
  */
 interface RecentActivityFeedContextType {
   recentActivities: RecentActivity[] | null;
   loading: boolean;
   error: string | null;
-  isConnected: boolean;
 }
 
 interface RecentActivityFeedProviderProps {
@@ -52,7 +52,6 @@ export const RecentActivityFeedProvider: FC<
   >(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
     /**
@@ -68,7 +67,7 @@ export const RecentActivityFeedProvider: FC<
     const handleNewActivity = (
       activity: RecentActivity | EncryptionResult,
     ): void => {
-      const data: RecentActivity = handleActivityDecryption(activity);
+      const data: RecentActivity = handleDecryption(activity);
       setRecentActivities((prevState: RecentActivity[] | null) => {
         return prevState ? [data, ...prevState].slice(0, 3) : [data];
       });
@@ -76,7 +75,7 @@ export const RecentActivityFeedProvider: FC<
     };
 
     /**
-     * Configures an event handler to listen for 'NewActivity' events.
+     * Configures an event handler to listen for 'newActivity' events.
      *
      * @property {string} eventName - The name of the event to listen for.
      * @property {function} handler - The function to be called when the 'newActivity' event is emitted.
@@ -88,7 +87,6 @@ export const RecentActivityFeedProvider: FC<
 
     try {
       socketService.connect();
-      setIsConnected(socketService.isConnected());
       socketService.on(eventHandler);
 
       return () => {
@@ -102,7 +100,7 @@ export const RecentActivityFeedProvider: FC<
 
   return (
     <RecentActivityFeedContext.Provider
-      value={{ recentActivities, loading, error, isConnected }}
+      value={{ recentActivities, loading, error }}
     >
       {children}
     </RecentActivityFeedContext.Provider>
