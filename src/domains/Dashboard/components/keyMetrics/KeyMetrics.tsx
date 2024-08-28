@@ -2,7 +2,7 @@ import type { FC, ReactElement } from "react";
 import { memo } from "react";
 import { Grid, Card, CardContent, Typography } from "@mui/material";
 import { useKeyMetrics } from "../../context/KeyMetricsContext";
-import type { KeyMetricService as IKeyMetric } from "../../services/keyMetricService";
+import type { KeyMetric } from "../../services/keyMetric/types";
 import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
 
 /**
@@ -36,7 +36,7 @@ const KeyMetrics: FC = (): ReactElement => {
         Key Metrics Cards
       </Typography>
       <Grid container spacing={3}>
-        {keyMetrics.map(({ title, value }: IKeyMetric, index: number) => (
+        {keyMetrics.map(({ title, value }: KeyMetric, index: number) => (
           <Grid item xs={12} sm={4} key={index}>
             <Card sx={{ border: "1 px solid #ccc", boxShadow: 3 }}>
               <CardContent>

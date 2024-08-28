@@ -10,7 +10,7 @@ export class RecentActivityDataProvider
   /**
    * Retrieves an array of recent activity data.
    *
-   * @returns {IRecentActivity[]} An array of `RecentActivity` objects, each representing a dummy activity entry.
+   * @returns {IRecentActivity[]} An array of `IRecentActivity` objects, each representing a dummy activity entry.
    */
   public getData(): IRecentActivity[] {
     return this.generateDummyActivities(25);
@@ -20,7 +20,7 @@ export class RecentActivityDataProvider
    * Generates a specified number of dummy recent activity entries.
    *
    * @param {number} count - The number of dummy activities to generate.
-   * @returns {IRecentActivity[]} An array of `RecentActivity` objects, each containing random job details.
+   * @returns {IRecentActivity[]} An array of `IRecentActivity` objects, each containing random job details.
    */
   private generateDummyActivities(count: number): IRecentActivity[] {
     const activities: IRecentActivity[] = [];

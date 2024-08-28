@@ -1,7 +1,13 @@
 import type { FC, ReactNode, ReactElement } from "react";
 import { createContext, useContext, useState, useEffect } from "react";
-import type { KeyMetricService as KeyMetric } from "../services/keyMetricService";
-import { fetchKeyMetrics } from "../services/keyMetricService";
+import {
+  KeyMetricSocketEvents,
+  type KeyMetric,
+} from "../services/keyMetric/types";
+import type { EventHandler, WebSocket } from "../services/websocket/types";
+import { SocketService } from "../services/websocket/WebSocketService";
+import type { EncryptionResult } from "../services/Encryption";
+import { handleDecryption } from "../utils/activityDecryption";
 
 /**
  * Represents the structure of the KeyMetricsContext.
@@ -39,16 +45,45 @@ export const KeyMetricsProvider: FC<KeyMetricsProviderProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const result: KeyMetric[] = await fetchKeyMetrics();
-        setKeyMetrics(result);
-      } catch (err) {
-        setError(`Failed to fetch key metrics: ${err}`);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    const socketService: WebSocket = new SocketService();
+
+    /**
+     * Handles incoming 'newKeyMetrics' events from the WebSocket connection.
+     *
+     * @param {KeyMetric} keyMetrics - The new key metrics data received from the WebSocket server.
+     */
+    const handleNewKeyMetrics = (
+      keyMetrics: KeyMetric | EncryptionResult,
+    ): void => {
+      const data = handleDecryption<KeyMetric>(keyMetrics);
+      setKeyMetrics(() => {
+        return data as KeyMetric[];
+      });
+      setLoading(false);
+    };
+
+    /**
+     * Configures an event handler to listen for 'newKeyMetrics' events.
+     *
+     * @property {string} eventName - The name of the event to lister for.
+     * @property {function} handler - The function to be called when the 'newKeyMetrics' event is emitted.
+     */
+    const eventHandler: EventHandler = {
+      eventName: KeyMetricSocketEvents.NewKeyMetrics,
+      handler: handleNewKeyMetrics,
+    };
+
+    try {
+      socketService.connect();
+      socketService.on(eventHandler);
+
+      return () => {
+        socketService.off(eventHandler);
+        socketService.disconnect();
+      };
+    } catch (e) {
+      setError((e as Error)?.message || "An unknown error occurred");
+    }
   }, []);
 
   return (

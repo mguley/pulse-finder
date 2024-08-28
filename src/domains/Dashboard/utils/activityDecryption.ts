@@ -1,6 +1,5 @@
 import type { EncryptionResult } from "../services/Encryption";
 import { AESEncryption } from "../services/Encryption";
-import type { RecentActivity } from "../services/recentActivity/types";
 
 const secretKey = "12345678901234567890123456789012";
 const decrypt = new AESEncryption(secretKey);
@@ -21,13 +20,12 @@ export function isEncryptionResult(data: object): data is EncryptionResult {
 }
 
 /**
- * Handles decryption if the activity is encrypted.
+ * Handles decryption if the data is encrypted.
  *
- * @param {RecentActivity | EncryptionResult} activity - The activity data to decrypt if needed.
- * @returns {RecentActivity} - The decrypted or plain activity data.
+ * @template T
+ * @param {T | EncryptionResult} data - The data to decrypt if needed.
+ * @returns {T} - The decrypted or plain data.
  */
-export function handleActivityDecryption(
-  activity: RecentActivity | EncryptionResult,
-): RecentActivity {
-  return isEncryptionResult(activity) ? decrypt.decrypt(activity) : activity;
+export function handleDecryption<T>(data: T | EncryptionResult): T {
+  return isEncryptionResult(data) ? (decrypt.decrypt(data) as T) : data;
 }
