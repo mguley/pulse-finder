@@ -1,4 +1,8 @@
-import type { Server as HTTPServer } from "http";
+import type {
+  Server as HTTPServer,
+  IncomingMessage,
+  ServerResponse,
+} from "http";
 import { createServer } from "http";
 import type { Socket } from "socket.io";
 import { Server as SocketIOServer } from "socket.io";
@@ -17,7 +21,7 @@ import type { IKeyMetrics } from "../core/interfaces/keyMetrics/IKeyMetrics";
 import type { IServerManager } from "./IServerManager";
 
 const config = {
-  port: process.env.PORT || 4000,
+  port: Number(process.env.PORT) || 4000,
   tunnelSubdomain: "github-io-pulse-finder",
 };
 
@@ -31,27 +35,67 @@ export class ServerManager implements IServerManager {
   private tunnel?: Tunnel;
 
   /**
-   * @param {IDataProvider<IRecentActivity>} [recentActivityDataProvider] - The data provider for recent activities.
-   * @param {IDataProvider<IKeyMetrics>} [keyMetricsDataProvider] - The data provider for key metrics.
-   * @param {IEncryption} [encryptor] - The encryption service used for securing the data.
+   * @param {IDataProvider<IRecentActivity>} recentActivityDataProvider - The data provider for recent activities.
+   * @param {IDataProvider<IKeyMetrics>} keyMetricsDataProvider - The data provider for key metrics.
+   * @param {IEncryption} encryptor - The encryption service used for securing the data.
    */
   constructor(
-    private readonly recentActivityDataProvider?: IDataProvider<IRecentActivity>,
-    private readonly keyMetricsDataProvider?: IDataProvider<IKeyMetrics>,
-    private readonly encryptor?: IEncryption,
+    private readonly recentActivityDataProvider: IDataProvider<IRecentActivity> = new RecentActivityDataProvider(),
+    private readonly keyMetricsDataProvider: IDataProvider<IKeyMetrics> = new KeyMetricsDataProvider(),
+    private readonly encryptor: IEncryption = new AESEncryption(),
   ) {
-    this.recentActivityDataProvider =
-      recentActivityDataProvider ?? new RecentActivityDataProvider();
-    this.keyMetricsDataProvider =
-      keyMetricsDataProvider ?? new KeyMetricsDataProvider();
-    this.encryptor = encryptor ?? new AESEncryption();
+    this.httpServer = this.createHTTPServer();
+    this.io = this.createSocketServer();
+  }
 
-    this.httpServer = createServer();
-    this.io = new SocketIOServer(this.httpServer, {
+  /**
+   * Creates and configures the HTTP server instance.
+   *
+   * @returns {HTTPServer} The configured HTTP server.
+   */
+  private createHTTPServer(): HTTPServer {
+    const requestListener = (
+      request: IncomingMessage,
+      response: ServerResponse,
+    ) => {
+      if (request.method === "OPTIONS") {
+        this.handlePreflightRequest(response);
+      }
+    };
+
+    return createServer(requestListener);
+  }
+
+  /**
+   * Handles CORS preflight requests by responding with the appropriate headers.
+   *
+   * @param {ServerResponse} response - The server response object.
+   */
+  private handlePreflightRequest(response: ServerResponse): void {
+    response.writeHead(200, {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    });
+    response.end();
+  }
+
+  /**
+   * Creates and configures the Socket.IO server instance with CORS settings.
+   *
+   * @returns {SocketIOServer} The configured Socket.IO server.
+   */
+  private createSocketServer(): SocketIOServer {
+    return new SocketIOServer(this.httpServer, {
       cors: {
         origin: "*",
-        methods: ["GET", "POST"],
-        allowedHeaders: ["Content-Type", "bypass-tunnel-reminder"],
+        methods: ["GET", "POST", "OPTIONS"],
+        allowedHeaders: [
+          "Content-Type",
+          "bypass-tunnel-reminder",
+          "Authorization",
+        ],
+        credentials: true,
       },
     });
   }
@@ -67,6 +111,7 @@ export class ServerManager implements IServerManager {
         console.log(`Server is running on port ${config.port}`);
         await this.setupTunnel();
       });
+      this.handleConnections();
     } catch (error) {
       console.error(`Error starting server: ${error}`);
       process.exit(1);
