@@ -3,7 +3,7 @@ import { memo } from "react";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { Card, CardContent, Typography } from "@mui/material";
 import { useJobStatusChart } from "../../context/JobStatusChartContext";
-import type { JobStatusService as IJobStatus } from "../../services/jobStatusService";
+import type { JobStatus } from "../../services/jobStatus/types";
 import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
 
 /**
@@ -31,7 +31,7 @@ const JobStatusChart: FC = (): ReactElement => {
   }
 
   const data = jobStatusData.map(
-    ({ status, count }: IJobStatus, index: number) => ({
+    ({ status, count }: JobStatus, index: number) => ({
       id: index,
       value: count,
       label: status,
