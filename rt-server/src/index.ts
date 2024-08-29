@@ -5,7 +5,6 @@ import { ServerManager } from "./server/ServerManager";
 (async () => {
   const serverManager: IServerManager = new ServerManager();
   await serverManager.start();
-  serverManager.handleConnections();
 
   // Handle graceful shutdown
   process.on("SIGINT", async () => {
