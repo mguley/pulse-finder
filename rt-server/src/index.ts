@@ -1,14 +1,28 @@
-import type { IServerManager } from "./server/IServerManager";
 import { ServerManager } from "./server/ServerManager";
+import { RecentActivityDataProvider } from "./data/RecentActivityDataProvider";
+import { KeyMetricsDataProvider } from "./data/KeyMetricsDataProvider";
+import { JobStatusDataProvider } from "./data/JobStatusDataProvider";
+import { AESEncryption } from "./core/encryption/AESEncryption";
 
-// Main execution
 (async () => {
-  const serverManager: IServerManager = new ServerManager();
+  // Instantiate the data providers and encryption service
+  const recentActivityDataProvider = new RecentActivityDataProvider();
+  const keyMetricsDataProvider = new KeyMetricsDataProvider();
+  const jobStatusDataProvider = new JobStatusDataProvider();
+  const encryptor = new AESEncryption();
+
+  // Instantiate the ServerManager with the dependencies
+  const serverManager = new ServerManager(
+    recentActivityDataProvider,
+    keyMetricsDataProvider,
+    jobStatusDataProvider,
+    encryptor,
+  );
+
   await serverManager.start();
 
-  // Handle graceful shutdown
   process.on("SIGINT", async () => {
-    console.log(`Received SIGINT. Shutting down...`);
+    console.log(`SIGTERM received. Stopping server...`);
     await serverManager.stop();
     process.exit(0);
   });

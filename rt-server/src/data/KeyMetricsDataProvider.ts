@@ -6,10 +6,10 @@ import type { IKeyMetrics } from "../core/interfaces/keyMetrics/IKeyMetrics";
  */
 export class KeyMetricsDataProvider implements IDataProvider<IKeyMetrics> {
   private readonly data: IKeyMetrics[][] = [];
-  private readonly default: number = 25;
+  private readonly defaultCount: number = 25;
 
   constructor() {
-    this.generateDummyKeyMetrics(this.default);
+    this.generateDummyKeyMetrics(this.defaultCount);
   }
 
   /**

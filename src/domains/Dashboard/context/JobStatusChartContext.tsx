@@ -1,7 +1,13 @@
 import type { FC, ReactNode, ReactElement } from "react";
 import { createContext, useContext, useState, useEffect } from "react";
-import type { JobStatusService as JobStatus } from "../services/jobStatusService";
-import { fetchJobStatusData } from "../services/jobStatusService";
+import {
+  JobStatusSocketEvents,
+  type JobStatus,
+} from "../services/jobStatus/types";
+import type { EventHandler, WebSocket } from "../services/websocket/types";
+import { SocketService } from "../services/websocket/WebSocketService";
+import type { EncryptionResult } from "../services/Encryption";
+import { handleDecryption } from "../utils/activityDecryption";
 
 /**
  * Represents the structure of the JobStatusChartContext.
@@ -39,16 +45,43 @@ export const JobStatusChartProvider: FC<JobStatusChartProviderProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const result: JobStatus[] = await fetchJobStatusData();
-        setJobStatusData(result);
-      } catch (err) {
-        setError(`Failed to fetch job status data: ${err}`);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    const socketService: WebSocket = new SocketService();
+
+    /**
+     * Handles incoming 'newJobStatuses' events from the WebSocket connection.
+     *
+     * @param {JobStatus} item - The new job statuses data received from the WebSocket server.
+     */
+    const handleNewJobStatuses = (item: JobStatus | EncryptionResult): void => {
+      const data = handleDecryption<JobStatus>(item);
+      setJobStatusData((): JobStatus[] => {
+        return data as JobStatus[];
+      });
+      setLoading(false);
+    };
+
+    /**
+     * Configures an event handler to listen for 'newJobStatuses' events.
+     *
+     * @property {string} eventName - The name of the event to listen for.
+     * @property {function} handler - The function to be called when the 'newJobStatuses' event is emitted.
+     */
+    const eventHandler: EventHandler = {
+      eventName: JobStatusSocketEvents.NewJobStatuses,
+      handler: handleNewJobStatuses,
+    };
+
+    try {
+      socketService.connect();
+      socketService.on(eventHandler);
+
+      return () => {
+        socketService.off(eventHandler);
+        socketService.disconnect();
+      };
+    } catch (e) {
+      setError((e as Error)?.message || "An unknown error occurred");
+    }
   }, []);
 
   return (
