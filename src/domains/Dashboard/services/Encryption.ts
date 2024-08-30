@@ -1,5 +1,4 @@
 import CryptoJS from "crypto-js";
-import type { RecentActivity } from "./recentActivity/types";
 
 /**
  * Represents the structure of the object returned by the encrypt method.
@@ -14,7 +13,7 @@ export interface EncryptionResult {
  * Defines the contract for encryption and decryption methods.
  */
 export interface Decryption {
-  decrypt(payload: EncryptionResult): RecentActivity;
+  decrypt<T>(payload: EncryptionResult): T;
 }
 
 /**
@@ -37,11 +36,12 @@ export class AESEncryption implements Decryption {
   /**
    * Decrypts the given encrypted payload using AES-256-CBC.
    *
+   * @template T
    * @param {EncryptionResult} payload - The encrypted data and the IV used during encryption.
-   * @returns {RecentActivity} - The decrypted data, parsed as a RecentActivity object.
+   * @returns {T} - The decrypted data, parsed as a RecentActivity object.
    * @throws Will throw an error if decryption fails.
    */
-  public decrypt(payload: EncryptionResult): RecentActivity {
+  public decrypt<T>(payload: EncryptionResult): T {
     try {
       // Convert the secret key to a WordArray for crypto-js
       const key = CryptoJS.enc.Utf8.parse(this.secretKey);
@@ -60,7 +60,7 @@ export class AESEncryption implements Decryption {
       const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
 
       // Parse the decrypted string back into a RecentActivity object
-      return JSON.parse(decryptedText) as RecentActivity;
+      return JSON.parse(decryptedText) as T;
     } catch (e) {
       const message: string = (e as Error)?.message || "Decryption error";
       throw new Error(`Decryption failed: ${message}`);
