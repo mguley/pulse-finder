@@ -1,8 +1,8 @@
 import type { EncryptionResult } from "../services/Encryption";
-import { AESEncryption } from "../services/Encryption";
+import { AESEncryption, type Decryption } from "../services/Encryption";
 
-const secretKey = "12345678901234567890123456789012";
-const decrypt = new AESEncryption(secretKey);
+const secretKey: string = "12345678901234567890123456789012";
+const decrypt: Decryption = new AESEncryption(secretKey);
 
 /**
  * Type guard to check if the incoming data is an EncryptionResult.
