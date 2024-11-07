@@ -1,15 +1,36 @@
 services:
   web-app:
-    container_name: web-app
+    container_name: pulse_web_app
     build:
       dockerfile: docker/Dockerfile
       context: .
     ports:
       - "3000:3000"
+    networks:
+      - pulse_network
     volumes:
       - .:/usr/src/app
     stdin_open: true
     tty: true
+
+  terraform:
+    image: hashicorp/terraform:latest
+    container_name: pulse_terraform
+    volumes:
+      - ./terraform/providers/digitalocean:/workspace
+    working_dir: /workspace
+    entrypoint: ["tail", "-f", "/dev/null"]
+    networks:
+      - pulse_network
+    environment:
+      - TF_LOG=TRACE
+
+networks:
+  pulse_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 220.45.0.0/16
 
   #rt-server:
   #  container_name: rt-server
