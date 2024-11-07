@@ -1,0 +1,10 @@
+
+use (
+	./application
+	./cmd
+	./domain
+	./infrastructure
+	./interfaces
+)
+
+go 1.23.0
