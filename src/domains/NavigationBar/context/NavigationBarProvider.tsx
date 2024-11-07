@@ -28,9 +28,7 @@ export const NavigationBarProvider: FC<NavigationBarProviderProps> = ({
   children,
 }: NavigationBarProviderProps): ReactElement => {
   const data: NavigationItem[] = [
-    { label: "Dashboard", route: "/pulse-finder/" },
-    { label: "Jobs Management", route: "/pulse-finder/jobs-management" },
-    //{ label: "Worker Monitoring", route: "/pulse-finder/worker-monitoring" },
+    { label: "Jobs Management", route: "/pulse-finder/" },
   ];
 
   const [navItems] = useState<NavigationItem[]>(data);

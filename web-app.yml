@@ -11,14 +11,14 @@ services:
     stdin_open: true
     tty: true
 
-  rt-server:
-    container_name: rt-server
-    build:
-      dockerfile: docker/Dockerfile
-      context: rt-server/.
-    ports:
-      - "4000:4000"
-    volumes:
-      - ./rt-server:/usr/src/app
-    stdin_open: true
-    tty: true
+  #rt-server:
+  #  container_name: rt-server
+  #  build:
+  #    dockerfile: docker/Dockerfile
+  #    context: rt-server/.
+  #  ports:
+  #    - "4000:4000"
+  #  volumes:
+  #    - ./rt-server:/usr/src/app
+  #  stdin_open: true
+  #  tty: true

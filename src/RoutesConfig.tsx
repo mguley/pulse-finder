@@ -1,9 +1,7 @@
 import type { FC, ReactElement } from "react";
 import { memo } from "react";
 import { Route, Routes } from "react-router-dom";
-import DashboardOverview from "./domains/Dashboard/pages/DashboardOverview";
 import JobsManagement from "./domains/Jobs/pages/JobsManagement";
-import WorkerMonitoring from "./domains/Workers/pages/WorkerMonitoring";
 
 /**
  * RoutesConfig component that defines all the routes for the application.
@@ -13,15 +11,7 @@ import WorkerMonitoring from "./domains/Workers/pages/WorkerMonitoring";
 const RoutesConfig: FC = (): ReactElement => {
   return (
     <Routes>
-      <Route path="/pulse-finder/" element={<DashboardOverview />} />
-      <Route
-        path="/pulse-finder/jobs-management"
-        element={<JobsManagement />}
-      />
-      <Route
-        path="/pulse-finder/worker-monitoring"
-        element={<WorkerMonitoring />}
-      />
+      <Route path="/pulse-finder/" element={<JobsManagement />} />
     </Routes>
   );
 };
