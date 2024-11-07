@@ -58,3 +58,23 @@ tidy:
 
 	@echo 'Vendoring workspace dependencies...'
 	go work vendor
+
+# =============================================================================== #
+# BUILD
+# =============================================================================== #
+
+## build/api: Build application without optimizations
+.PHONY: build/api
+build/api:
+	@echo 'Building application without optimizations...'
+	@mkdir -p ./bin
+	GOARCH=amd64 GOOS=linux go build -o=./bin/api ./cmd/main
+	@echo 'Build for Linux (amd64) complete.'
+
+## build/api/optimized: Build application with optimizations
+.PHONY: build/api/optimized
+build/api/optimized:
+	@echo 'Building application with optimizations...'
+	@mkdir -p ./bin
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -ldflags="-s -w" -o=./bin/linux_amd64/api ./cmd/main
+	@echo 'Build for Linux (amd64) complete (optimized).'
