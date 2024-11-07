@@ -30,7 +30,7 @@ export const NavigationBarProvider: FC<NavigationBarProviderProps> = ({
   const data: NavigationItem[] = [
     { label: "Dashboard", route: "/pulse-finder/" },
     { label: "Jobs Management", route: "/pulse-finder/jobs-management" },
-    { label: "Worker Monitoring", route: "/pulse-finder/worker-monitoring" },
+    //{ label: "Worker Monitoring", route: "/pulse-finder/worker-monitoring" },
   ];
 
   const [navItems] = useState<NavigationItem[]>(data);
