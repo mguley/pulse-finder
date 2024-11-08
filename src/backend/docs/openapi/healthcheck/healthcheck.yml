@@ -1,0 +1,71 @@
+openapi: 3.1.0
+info:
+  title: "Pulse finder API | Health Check"
+  version: "1.0.0"
+  description: |
+    This endpoint provides the health status of the application, allowing monitoring tools to check if the service is running correctly.
+
+paths:
+  /v1/healthcheck:
+    get:
+      summary: "Check Application Health"
+      description: |
+        Returns the health status of the application, including information about the environment and version.
+      operationId: "getHealthCheckStatus"
+      tags:
+        - "Health"
+      responses:
+        "200":
+          description: "Application is healthy and responsive"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthCheckResponse"
+        "500":
+          description: "Internal Server Error - Unexpected server error occurred."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Error message"
+
+components:
+  schemas:
+    HealthCheckResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          nullable: true
+          description: "The health status of the system (e.g., 'available')"
+        system_info:
+          $ref: '#/components/schemas/SystemInfo'
+        timestamp:
+          type: string
+          format: date-time
+          nullable: true
+          description: "The time the health check was performed"
+      example:
+        status: "available"
+        system_info:
+          environment: "production"
+          version: "1.0.0"
+        timestamp: "2024-11-08 16:33:05"
+
+    SystemInfo:
+      type: object
+      properties:
+        environment:
+          type: string
+          nullable: true
+          description: "The environment in which the application is running (e.g., 'production', 'staging')"
+        version:
+          type: string
+          nullable: true
+          description: "The version of the application"
+      example:
+        environment: "production"
+        version: "1.0.0"

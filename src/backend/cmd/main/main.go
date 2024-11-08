@@ -2,6 +2,7 @@ package main
 
 import (
 	"application"
+	"application/route"
 	"context"
 	"errors"
 	"log/slog"
@@ -30,7 +31,7 @@ func NewServer() *Server {
 		Logger:    logger,
 		HTTP: &http.Server{
 			Addr:         ":" + strconv.Itoa(container.Config.Get().Port),
-			Handler:      nil,
+			Handler:      route.Register(container),
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  15 * time.Second,
