@@ -1,0 +1,45 @@
+[Unit]
+# Name for the service, which helps identify it in logs or service management tools.
+Description=Pulse finder API service
+
+# Service starts after the network is fully up and operational.
+After=network-online.target
+# Service should ensure the network is available, but it's not a strict requirement. Expresses a "soft" dependency.
+Wants=network-online.target
+
+# Configure service start rate limiting.
+# If the service is (re)started more than 5 times in 600 seconds then don't permit it to start anymore.
+StartLimitIntervalSec=600
+# Limits the number of times the service can restart within the time window (600 seconds).
+# If the service restarts more than 5 times within that period, systemd will prevent further restarts.
+StartLimitBurst=5
+
+[Service]
+# Specifies that the service should be started by executing the binary directly (Pulse finder API binary).
+Type=exec
+# The service will run as the `pulsefinder` user, ensuring that it doesn't run as root.
+User=pulsefinder
+# The service will run with the `pulsefinder` group permissions.
+Group=pulsefinder
+# Load environment variables from the /etc/environment file. set_environment_variables() function, setup bash script.
+EnvironmentFile=/etc/environment
+# Working directory for the service. Any relative paths will be based on this directory.
+WorkingDirectory=/home/pulsefinder
+# Command to start the Pulse finder API service.
+ExecStart=/home/pulsefinder/api
+
+# Automatically restart the service after a 5-second wait if it exits with a non-zero exit code.
+# If it restarts more than 5 times in 600 seconds, then the rate limit we configured above will be hit
+# and it won't be restarted anymore.
+Restart=on-failure
+# If the service fails, systemd will wait 5 seconds before restarting it.
+RestartSec=5
+# Sets the time to wait for the service to stop before systemd forcibly kills it. This is helpful for ensuring graceful shutdown.
+TimeoutStopSec=20
+
+[Install]
+# Start the service automatically at boot time (the 'multi-user.target' describes a boot state when the system will accept logins).
+# This means that the service will be started automatically during the system's boot process once the system reaches
+# the multi-user target, which is a system state where most services are up, and logins are accepted (but not graphical
+# environment is required).
+WantedBy=multi-user.target

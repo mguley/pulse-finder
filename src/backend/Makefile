@@ -93,6 +93,30 @@ production/connect:
 production/deploy-files:
 	@echo 'Deploying new api binary and service files...'
 	rsync -P ./bin/linux_amd64/api pulsefinder@${PRODUCTION_HOST_IP}:~
+	rsync -P ./remote/production/api.service pulsefinder@${PRODUCTION_HOST_IP}:~
+
+## production/restart-service: Restart the API service
+.PHONY: production/restart-service
+production/restart-service:
+	@echo 'Restarting the api service...'
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo mv ~/api.service /etc/systemd/system/ && \
+	  sudo systemctl enable api  && \
+	  sudo systemctl restart api'
+
+## production/check-status: Check the status of the API service
+.PHONY: production/check-service-status
+production/check-status:
+	@echo 'Checking the api service status...'
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo systemctl status api --no-pager'
+
+## production/check-nginx-status: Check the status of the Nginx service
+.PHONY: production/check-nginx-status
+production/check-nginx-status:
+	@echo 'Checking the Nginx service status...'
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo systemctl status nginx --no-pager'
 
 ## production/upload-nginx-config: Upload Nginx config files and restart Nginx
 .PHONY: production/upload-nginx-config
@@ -107,5 +131,11 @@ production/upload-nginx-config:
 
 ## production/deploy/api: Deploy the api to production
 .PHONY: production/deploy/api
-production/deploy/api: production/deploy-files production/upload-nginx-config
+production/deploy/api:
+	@$(MAKE) build/api/optimized
+	@$(MAKE) production/deploy-files
+	@$(MAKE) production/restart-service
+	@$(MAKE) production/upload-nginx-config
+	@$(MAKE) production/check-service-status
+	@$(MAKE) production/check-nginx-status
 	@echo 'Deployment to production complete.'
