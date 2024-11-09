@@ -19,8 +19,8 @@ services:
     image: postgres:latest
     container_name: pulse_db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: pulse_finder
     volumes:
       - pulse_finder_db:/var/lib/postgresql/data
@@ -41,6 +41,19 @@ services:
       - pulse_network
     environment:
       - TF_LOG=TRACE
+
+  db_migration:
+    container_name: pulse_db_migration
+    build:
+      dockerfile: docker/migrations/Dockerfile
+    depends_on:
+      - web-db
+    volumes:
+      - ./src/backend/infrastructure/migrations/jobs:/migrations
+    networks:
+      - pulse_network
+    environment:
+      DB_DSN: postgres://user:password@web-db:5432/pulse_finder?sslmode=disable
 
 networks:
   pulse_network:
