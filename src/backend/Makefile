@@ -92,16 +92,22 @@ production/connect:
 .PHONY: production/deploy-files
 production/deploy-files:
 	@echo 'Deploying new api binary and service files...'
-	rsync -P ./bin/linux_amd64/api pulsefinder@${PRODUCTION_HOST_IP}:~
-	rsync -P ./remote/production/api.service pulsefinder@${PRODUCTION_HOST_IP}:~
+	rsync -P ./bin/linux_amd64/api pulsefinder@${PRODUCTION_HOST_IP}:/tmp/api
+	rsync -P ./remote/production/api.service pulsefinder@${PRODUCTION_HOST_IP}:/tmp/api.service
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo mkdir -p /opt/pulsefinder && \
+	  sudo mv /tmp/api /opt/pulsefinder/ && \
+	  sudo chown -R pulsefinder:pulsefinder /opt/pulsefinder && \
+	  sudo chmod +x /opt/pulsefinder/api && \
+	  sudo mv /tmp/api.service /etc/systemd/system/'
 
 ## production/restart-service: Restart the API service
 .PHONY: production/restart-service
 production/restart-service:
 	@echo 'Restarting the api service...'
 	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
-	  sudo mv ~/api.service /etc/systemd/system/ && \
-	  sudo systemctl enable api  && \
+	  sudo systemctl daemon-reload && \
+	  sudo systemctl enable api && \
 	  sudo systemctl restart api'
 
 ## production/check-status: Check the status of the API service

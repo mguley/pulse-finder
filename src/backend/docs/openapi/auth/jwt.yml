@@ -1,0 +1,43 @@
+openapi: 3.1.0
+info:
+  title: "Pulse finder API | Generate JWT Token"
+  version: "1.0.0"
+  description: |
+    This API endpoint generates a JWT token that can be used for authenticating subsequent API requests.
+
+paths:
+  /v1/jwt:
+    get:
+      summary: "Generate JWT Token"
+      description: |
+        Generates a new JWT token with specific claims such as issuer, scope, and expiration. This token can be used to authenticate requests to other endpoints.
+      operationId: "generateJwtToken"
+      tags:
+        - "Authentication"
+      responses:
+        "200":
+          description: "JWT token generated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwtTokenResponse"
+        "500":
+          description: "Internal Server Error - Unexpected server error occurred."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Error message"
+
+components:
+  schemas:
+    JwtTokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: "The generated JWT token"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzEyNDI4NDksImlzcyI6ImFwaS5wdWxzZS1maW5kZXIiLCJzY29wZSI6WyJyZWFkIl19.QDu28e8zDFmcyM3mNGOTwiZp_lRz6qW7P-zzfdjZSvQ"
