@@ -64,6 +64,7 @@ set_environment_variables() {
         # Application settings
         echo "PORT=4000"
         echo "ENV=production"
+        echo "JWT_SECRET=meewuZ8Hei2theefaiK9ahphie5oiDai1eiX6ehaeveeThae1oocha2sooMeeguog"
     } >> /etc/environment
 }
 
