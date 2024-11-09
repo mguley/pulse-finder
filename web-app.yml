@@ -6,12 +6,29 @@ services:
       context: .
     ports:
       - "3000:3000"
+    depends_on:
+      - web-db
     networks:
       - pulse_network
     volumes:
       - .:/usr/src/app
     stdin_open: true
     tty: true
+
+  web-db:
+    image: postgres:latest
+    container_name: pulse_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pulse_finder
+    volumes:
+      - pulse_finder_db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      pulse_network:
+        ipv4_address: 220.45.0.5
 
   terraform:
     image: hashicorp/terraform:latest
@@ -31,6 +48,9 @@ networks:
       driver: default
       config:
         - subnet: 220.45.0.0/16
+
+volumes:
+  pulse_finder_db:
 
   #rt-server:
   #  container_name: rt-server
