@@ -3,6 +3,7 @@ package application
 import (
 	"application/config"
 	"application/dependency"
+	diAuth "domain/auth"
 	diHealthcheck "domain/healthcheck"
 	"interfaces/api/utils"
 	"log/slog"
@@ -16,6 +17,7 @@ type Container struct {
 	Handler              dependency.LazyDependency[*utils.Handler]
 	Errors               dependency.LazyDependency[*utils.Errors]
 	HealthCheckContainer dependency.LazyDependency[*diHealthcheck.Container]
+	JwtAuthContainer     dependency.LazyDependency[*diAuth.Container]
 }
 
 // NewContainer creates and returns a new instance of Container.
@@ -40,6 +42,14 @@ func NewContainer() *Container {
 	container.HealthCheckContainer = dependency.LazyDependency[*diHealthcheck.Container]{
 		InitFunc: func() *diHealthcheck.Container {
 			return diHealthcheck.NewContainer(
+				container.Config.Get(),
+				container.Handler.Get(),
+				container.Errors.Get())
+		},
+	}
+	container.JwtAuthContainer = dependency.LazyDependency[*diAuth.Container]{
+		InitFunc: func() *diAuth.Container {
+			return diAuth.NewContainer(
 				container.Config.Get(),
 				container.Handler.Get(),
 				container.Errors.Get())
