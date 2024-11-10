@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+set -euo pipefail  # Enhanced error handling: -e (exit on error), -u (treat unset variables as errors), -o pipefail (catch errors in pipelines)
 
 # ======================================================================== #
 # VARIABLES
@@ -7,6 +7,11 @@ set -eu
 
 TIMEZONE="Europe/Berlin"             # Set the timezone
 USERNAME="pulsefinder"               # Name of the new user to create
+DB_PASSWORD=""                       # Password for Postgres pulse_finder user (prompted)
+
+# Prompt user for the DB password
+read -rsp "Enter password for pulse_finder DB user: " DB_PASSWORD
+echo ""
 
 # Export locale to avoid any locale-related errors.
 export LC_ALL=en_US.UTF-8
@@ -18,7 +23,7 @@ export LC_ALL=en_US.UTF-8
 # Update and upgrade system packages
 update_system() {
     echo "Updating system packages..."
-    apt update
+    apt-get update -q
 }
 
 # Enable necessary repositories
@@ -32,18 +37,26 @@ setup_time_and_locale() {
     echo "Setting timezone to ${TIMEZONE}..."
     timedatectl set-timezone "${TIMEZONE}"
     echo "Installing all locales..."
-    apt --yes install locales-all
+    apt-get --yes install locales-all
 }
 
 # Create a new user with sudo privileges and SSH access
 create_user() {
-    echo "Creating user ${USERNAME}..."
-    useradd --create-home --shell "/bin/bash" --groups sudo "${USERNAME}"
-    passwd --delete "${USERNAME}"
-    chage --lastday 0 "${USERNAME}"
+    if id "${USERNAME}" &>/dev/null; then
+        echo "User ${USERNAME} already exists. Skipping creation."
+    else
+        echo "Creating user ${USERNAME}..."
+        useradd --create-home --shell "/bin/bash" --groups sudo "${USERNAME}"
+        passwd --delete "${USERNAME}"
+        chage --lastday 0 "${USERNAME}"
 
-    echo "Copying SSH keys to new user..."
-    rsync --archive --chown="${USERNAME}:${USERNAME}" /root/.ssh /home/"${USERNAME}"
+        echo "Copying SSH keys to new user..."
+        if [ -d "/root/.ssh" ]; then
+            rsync --archive --chown="${USERNAME}:${USERNAME}" /root/.ssh /home/"${USERNAME}"
+        else
+            echo "No SSH keys found in /root/.ssh. Skipping SSH key copy."
+        fi
+    fi
 }
 
 # Configure firewall to allow SSH, HTTP, and HTTPS
@@ -58,21 +71,37 @@ configure_firewall() {
 # Set environment variables
 set_environment_variables() {
     echo "Adding environment variables to /etc/environment..."
+    # Safeguard existing environment variables by adding only if they are not present
+    grep -qxF 'PORT=4000' /etc/environment || echo "PORT=4000" >> /etc/environment
+    grep -qxF 'ENV=production' /etc/environment || echo "ENV=production" >> /etc/environment
+    grep -qxF "DB_DSN='postgres://pulse_finder:${DB_PASSWORD}@localhost/pulse_finder'" /etc/environment || echo "DB_DSN='postgres://pulse_finder:${DB_PASSWORD}@localhost/pulse_finder'" >> /etc/environment
+    grep -qxF 'JWT_SECRET=meewuZ8Hei2theefaiK9ahphie5oiDai1eiX6ehaeveeThae1oocha2sooMeeguog' /etc/environment || echo "JWT_SECRET=meewuZ8Hei2theefaiK9ahphie5oiDai1eiX6ehaeveeThae1oocha2sooMeeguog" >> /etc/environment
+}
 
-    # Write all variables at once into /etc/environment
-    {
-        # Application settings
-        echo "PORT=4000"
-        echo "ENV=production"
-        echo "JWT_SECRET=meewuZ8Hei2theefaiK9ahphie5oiDai1eiX6ehaeveeThae1oocha2sooMeeguog"
-    } >> /etc/environment
+# Install migrate CLI for database migrations
+install_migrate_cli() {
+  echo "Installing the migrate CLI tool..."
+  curl -L https://github.com/golang-migrate/migrate/releases/download/v4.18.1/migrate.linux-amd64.tar.gz | tar xvz && \
+  mv migrate /usr/local/bin/migrate
+}
+
+# Install Postgres and set up pulse_finder database
+install_and_setup_postgresql() {
+    echo "Installing Postgres..."
+    apt-get --yes install postgresql
+
+    echo "Setting up pulse_finder database and user..."
+    sudo -i -u postgres psql -c "CREATE DATABASE pulse_finder"
+    sudo -i -u postgres psql -d pulse_finder -c "CREATE EXTENSION IF NOT EXISTS citext"
+    sudo -i -u postgres psql -c "CREATE ROLE pulse_finder WITH LOGIN PASSWORD '${DB_PASSWORD}'"
+    sudo -i -u postgres psql -c "ALTER DATABASE pulse_finder OWNER TO pulse_finder"
 }
 
 # Install and configure Nginx as the reverse proxy server
 install_nginx() {
     echo "Installing Nginx web server..."
-    apt update
-    apt --yes install nginx
+    apt-get update -q
+    apt-get --yes install nginx
 
     # Enable Nginx to start on boot and start the service
     systemctl enable nginx
@@ -82,7 +111,7 @@ install_nginx() {
 # Upgrade system packages
 upgrade_system() {
     echo "Upgrading all system packages..."
-    apt --yes -o Dpkg::Options::="--force-confnew" upgrade
+    apt-get --yes -o Dpkg::Options::="--force-confnew" upgrade
 }
 
 # ======================================================================== #
@@ -95,6 +124,8 @@ main() {
   setup_time_and_locale
   create_user
   configure_firewall
+  install_migrate_cli
+  install_and_setup_postgresql
   set_environment_variables
   install_nginx
   upgrade_system

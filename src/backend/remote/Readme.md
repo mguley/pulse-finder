@@ -70,7 +70,14 @@ After logging in, verify the setup by running the following commands:
 ```bash
 sudo systemctl status nginx
 ```  
-
+- Check Migrate CLI version
+```bash
+migrate -version
+```  
+- Test PostgreSQL connection
+```bash
+psql $DB_DSN
+``` 
 ---
 #### Step 7. Update `api-nginx.conf` with Droplet IP
 

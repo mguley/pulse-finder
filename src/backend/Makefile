@@ -94,12 +94,20 @@ production/deploy-files:
 	@echo 'Deploying new api binary and service files...'
 	rsync -P ./bin/linux_amd64/api pulsefinder@${PRODUCTION_HOST_IP}:/tmp/api
 	rsync -P ./remote/production/api.service pulsefinder@${PRODUCTION_HOST_IP}:/tmp/api.service
+	rsync -rP --delete ./infrastructure/migrations pulsefinder@${PRODUCTION_HOST_IP}:~
 	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
 	  sudo mkdir -p /opt/pulsefinder && \
 	  sudo mv /tmp/api /opt/pulsefinder/ && \
 	  sudo chown -R pulsefinder:pulsefinder /opt/pulsefinder && \
 	  sudo chmod +x /opt/pulsefinder/api && \
 	  sudo mv /tmp/api.service /etc/systemd/system/'
+
+## production/migrate: Run database migrations
+.PHONY: production/migrate
+production/migrate:
+	@echo 'Running database migrations on production...'
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  migrate -path ~/migrations/jobs -database $$DB_DSN up'
 
 ## production/restart-service: Restart the API service
 .PHONY: production/restart-service
@@ -140,6 +148,7 @@ production/upload-nginx-config:
 production/deploy/api:
 	@$(MAKE) build/api/optimized
 	@$(MAKE) production/deploy-files
+	@$(MAKE) production/migrate
 	@$(MAKE) production/restart-service
 	@$(MAKE) production/upload-nginx-config
 	@$(MAKE) production/check-service-status
