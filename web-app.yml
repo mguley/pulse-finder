@@ -6,12 +6,29 @@ services:
       context: .
     ports:
       - "3000:3000"
+    depends_on:
+      - web-db
     networks:
       - pulse_network
     volumes:
       - .:/usr/src/app
     stdin_open: true
     tty: true
+
+  web-db:
+    image: postgres:latest
+    container_name: pulse_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pulse_finder
+    volumes:
+      - pulse_finder_db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      pulse_network:
+        ipv4_address: 220.45.0.5
 
   terraform:
     image: hashicorp/terraform:latest
@@ -25,12 +42,28 @@ services:
     environment:
       - TF_LOG=TRACE
 
+  db_migration:
+    container_name: pulse_db_migration
+    build:
+      dockerfile: docker/migrations/Dockerfile
+    depends_on:
+      - web-db
+    volumes:
+      - ./src/backend/infrastructure/migrations/jobs:/migrations
+    networks:
+      - pulse_network
+    environment:
+      DB_DSN: postgres://user:password@web-db:5432/pulse_finder?sslmode=disable
+
 networks:
   pulse_network:
     ipam:
       driver: default
       config:
         - subnet: 220.45.0.0/16
+
+volumes:
+  pulse_finder_db:
 
   #rt-server:
   #  container_name: rt-server
