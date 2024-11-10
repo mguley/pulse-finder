@@ -5,7 +5,10 @@ import (
 	"application/dependency"
 	diAuth "domain/auth"
 	diHealthcheck "domain/healthcheck"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"infrastructure/database"
 	"interfaces/api/utils"
+	"log"
 	"log/slog"
 	"os"
 )
@@ -14,6 +17,7 @@ import (
 // It acts as a central registry for services, ensuring that dependencies are managed in a lazy loaded manner.
 type Container struct {
 	Config               dependency.LazyDependency[*config.Configuration]
+	DB                   dependency.LazyDependency[*pgxpool.Pool]
 	Handler              dependency.LazyDependency[*utils.Handler]
 	Errors               dependency.LazyDependency[*utils.Errors]
 	HealthCheckContainer dependency.LazyDependency[*diHealthcheck.Container]
@@ -35,6 +39,17 @@ func NewContainer() *Container {
 	container.Errors = dependency.LazyDependency[*utils.Errors]{
 		InitFunc: func() *utils.Errors {
 			return utils.NewErrors(logger, container.Handler.Get())
+		},
+	}
+
+	// Database
+	container.DB = dependency.LazyDependency[*pgxpool.Pool]{
+		InitFunc: func() *pgxpool.Pool {
+			db, err := database.NewPostgresDB(container.Config.Get().DB.DSN)
+			if err != nil {
+				log.Fatalf("Failed to initialize database: %v", err)
+			}
+			return db
 		},
 	}
 
