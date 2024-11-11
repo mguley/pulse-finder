@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// vacancyInstance is the instance of getVacancyPool function to access the pool.
+// vacancyInstance is the instance of the getVacancyPool function to access the pool.
 var vacancyInstance = getVacancyPool()
 
 // getVacancyPool returns a singleton instance of sync.Pool used to manage Vacancy entities.
