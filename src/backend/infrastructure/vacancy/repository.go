@@ -3,18 +3,18 @@ package vacancy
 import (
 	"context"
 	"domain/vacancy/entity"
-	"domain/vacancy/repository"
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
 )
 
+// PgxVacancyRepository implements the VacancyRepository interface using pgx.
 type PgxVacancyRepository struct {
-	repository.VacancyRepository
-	db *pgxpool.Pool
+	db *pgxpool.Pool // Connection pool for database interactions.
 }
 
+// NewPgxVacancyRepository initializes a new instance of PgxVacancyRepository with a database connection pool.
 func NewPgxVacancyRepository(db *pgxpool.Pool) *PgxVacancyRepository {
 	return &PgxVacancyRepository{db: db}
 }

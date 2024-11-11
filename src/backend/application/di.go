@@ -7,6 +7,7 @@ import (
 	diHealthcheck "domain/healthcheck"
 	diVacancy "domain/vacancy"
 	"github.com/jackc/pgx/v5/pgxpool"
+	diInfrastructure "infrastructure"
 	"infrastructure/database"
 	"interfaces/api/utils"
 	"log"
@@ -17,16 +18,18 @@ import (
 // Container is a struct that holds all the dependencies for the application.
 // It acts as a central registry for services, ensuring that dependencies are managed in a lazy loaded manner.
 type Container struct {
-	Config               dependency.LazyDependency[*config.Configuration]
-	DB                   dependency.LazyDependency[*pgxpool.Pool]
-	Handler              dependency.LazyDependency[*utils.Handler]
-	Errors               dependency.LazyDependency[*utils.Errors]
-	HealthCheckContainer dependency.LazyDependency[*diHealthcheck.Container]
-	JwtAuthContainer     dependency.LazyDependency[*diAuth.Container]
-	VacancyContainer     dependency.LazyDependency[*diVacancy.Container]
+	Config                  dependency.LazyDependency[*config.Configuration]
+	DB                      dependency.LazyDependency[*pgxpool.Pool]
+	Handler                 dependency.LazyDependency[*utils.Handler]
+	Errors                  dependency.LazyDependency[*utils.Errors]
+	InfrastructureContainer dependency.LazyDependency[*diInfrastructure.Container]
+	HealthCheckContainer    dependency.LazyDependency[*diHealthcheck.Container]
+	JwtAuthContainer        dependency.LazyDependency[*diAuth.Container]
+	VacancyContainer        dependency.LazyDependency[*diVacancy.Container]
 }
 
 // NewContainer creates and returns a new instance of Container.
+// Each dependency is configured to initialize only when first accessed.
 func NewContainer() *Container {
 	container := &Container{}
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -55,7 +58,12 @@ func NewContainer() *Container {
 		},
 	}
 
-	// Domain containers
+	// Domain/layer containers
+	container.InfrastructureContainer = dependency.LazyDependency[*diInfrastructure.Container]{
+		InitFunc: func() *diInfrastructure.Container {
+			return diInfrastructure.NewContainer(container.Config.Get())
+		},
+	}
 	container.HealthCheckContainer = dependency.LazyDependency[*diHealthcheck.Container]{
 		InitFunc: func() *diHealthcheck.Container {
 			return diHealthcheck.NewContainer(
@@ -76,7 +84,7 @@ func NewContainer() *Container {
 		InitFunc: func() *diVacancy.Container {
 			return diVacancy.NewContainer(
 				container.DB.Get(),
-				nil, // todo replace by the dispatcher instance
+				container.InfrastructureContainer.Get().EventDispatcher.Get(),
 				container.Handler.Get(),
 				container.Errors.Get())
 		},
