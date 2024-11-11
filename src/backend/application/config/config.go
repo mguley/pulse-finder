@@ -7,20 +7,26 @@ import (
 
 // Configuration holds the main application configuration settings.
 type Configuration struct {
-	Port int            // Application server port
-	Env  string         // Environment (e.g., "development", "production")
-	Jwt  JWTConfig      // Jwt configuration for authentication
-	DB   DatabaseConfig // Database configuration
+	Port int            // Application server port.
+	Env  string         // Environment (e.g., "development", "production").
+	Jwt  JWTConfig      // Jwt configuration for authentication.
+	DB   DatabaseConfig // Database configuration for connecting to the data source.
+	Nats NatsConfig     // NATS configuration.
 }
 
-// JWTConfig holds configuration for JWT-based authentication.
+// NatsConfig holds configuration settings for connecting to a NATS server.
+type NatsConfig struct {
+	URL string // URL of the NATS server.
+}
+
+// JWTConfig holds configuration settings for JWT-based authentication.
 type JWTConfig struct {
-	Secret string // Secret key for signing JWT tokens
+	Secret string // Secret key for signing JWT tokens.
 }
 
 // DatabaseConfig holds settings for database connection.
 type DatabaseConfig struct {
-	DSN string // Data source name for database connection
+	DSN string // Data source name for database connection.
 }
 
 // LoadConfig loads the configuration settings from environment variables, falling back to default
@@ -34,6 +40,9 @@ func LoadConfig() *Configuration {
 		},
 		DB: DatabaseConfig{
 			DSN: getEnv("DB_DSN", ""),
+		},
+		Nats: NatsConfig{
+			URL: getEnv("NATS_URL", ""),
 		},
 	}
 

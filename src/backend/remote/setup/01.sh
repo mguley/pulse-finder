@@ -8,6 +8,7 @@ set -euo pipefail  # Enhanced error handling: -e (exit on error), -u (treat unse
 TIMEZONE="Europe/Berlin"             # Set the timezone
 USERNAME="pulsefinder"               # Name of the new user to create
 DB_PASSWORD=""                       # Password for Postgres pulse_finder user (prompted)
+JWT_SECRET="meewuZ8Hei2theefaiK9ahphie5oiDai1eiX6ehaeveeThae1oocha2sooMeeguog"
 
 # Prompt user for the DB password
 read -rsp "Enter password for pulse_finder DB user: " DB_PASSWORD
@@ -72,10 +73,10 @@ configure_firewall() {
 set_environment_variables() {
     echo "Adding environment variables to /etc/environment..."
     # Safeguard existing environment variables by adding only if they are not present
-    grep -qxF 'PORT=4000' /etc/environment || echo "PORT=4000" >> /etc/environment
-    grep -qxF 'ENV=production' /etc/environment || echo "ENV=production" >> /etc/environment
+    grep -qxF "PORT=4000" /etc/environment || echo "PORT=4000" >> /etc/environment
+    grep -qxF "ENV=production" /etc/environment || echo "ENV=production" >> /etc/environment
     grep -qxF "DB_DSN='postgres://pulse_finder:${DB_PASSWORD}@localhost/pulse_finder'" /etc/environment || echo "DB_DSN='postgres://pulse_finder:${DB_PASSWORD}@localhost/pulse_finder'" >> /etc/environment
-    grep -qxF 'JWT_SECRET=meewuZ8Hei2theefaiK9ahphie5oiDai1eiX6ehaeveeThae1oocha2sooMeeguog' /etc/environment || echo "JWT_SECRET=meewuZ8Hei2theefaiK9ahphie5oiDai1eiX6ehaeveeThae1oocha2sooMeeguog" >> /etc/environment
+    grep -qxF "JWT_SECRET=${JWT_SECRET}" /etc/environment || echo "JWT_SECRET=${JWT_SECRET}" >> /etc/environment
 }
 
 # Install migrate CLI for database migrations

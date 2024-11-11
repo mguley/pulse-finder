@@ -42,6 +42,16 @@ services:
     environment:
       - TF_LOG=TRACE
 
+  nats:
+    image: nats:latest
+    container_name: pulse_nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      pulse_network:
+        ipv4_address: 220.45.0.7
+
   db_migration:
     container_name: pulse_db_migration
     build:
