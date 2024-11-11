@@ -5,6 +5,7 @@ import (
 	"application/dependency"
 	diAuth "domain/auth"
 	diHealthcheck "domain/healthcheck"
+	diVacancy "domain/vacancy"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"infrastructure/database"
 	"interfaces/api/utils"
@@ -22,6 +23,7 @@ type Container struct {
 	Errors               dependency.LazyDependency[*utils.Errors]
 	HealthCheckContainer dependency.LazyDependency[*diHealthcheck.Container]
 	JwtAuthContainer     dependency.LazyDependency[*diAuth.Container]
+	VacancyContainer     dependency.LazyDependency[*diVacancy.Container]
 }
 
 // NewContainer creates and returns a new instance of Container.
@@ -66,6 +68,15 @@ func NewContainer() *Container {
 		InitFunc: func() *diAuth.Container {
 			return diAuth.NewContainer(
 				container.Config.Get(),
+				container.Handler.Get(),
+				container.Errors.Get())
+		},
+	}
+	container.VacancyContainer = dependency.LazyDependency[*diVacancy.Container]{
+		InitFunc: func() *diVacancy.Container {
+			return diVacancy.NewContainer(
+				container.DB.Get(),
+				nil, // todo replace by the dispatcher instance
 				container.Handler.Get(),
 				container.Errors.Get())
 		},
