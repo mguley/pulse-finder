@@ -68,7 +68,7 @@ func (r *Response) FromEntity(e *entity.Vacancy) *Response {
 	r.Company = &company
 	r.Description = &description
 	if !postedAt.IsZero() {
-		v := postedAt.Format(time.RFC3339)
+		v := postedAt.Format(time.DateOnly)
 		r.PostedAt = &v
 	}
 	r.Location = &location

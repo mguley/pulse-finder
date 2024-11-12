@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/julienschmidt/httprouter"
 	"io"
 	"net/http"
 	"strconv"
@@ -24,8 +25,8 @@ var ErrInvalidIdParameter = errors.New("invalid id parameter")
 // ExtractId extracts the "id" parameter from the HTTP request context and parses it into an int64.
 // It returns an error if the parameter is missing or invalid.
 func (h *Handler) ExtractId(r *http.Request) (int64, error) {
-	params := r.URL.Query()
-	idParam := params.Get("id")
+	params := httprouter.ParamsFromContext(r.Context())
+	idParam := params.ByName("id")
 
 	if idParam == "" {
 		return 0, fmt.Errorf("%w: missing 'id' parameter", ErrInvalidIdParameter)

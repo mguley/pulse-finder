@@ -3,6 +3,8 @@ package validators
 import (
 	"interfaces/api/utils/validators"
 	"interfaces/api/vacancy/dto"
+	"strings"
+	"time"
 )
 
 // RequestValidator is responsible for validating Vacancy request DTOs.
@@ -18,7 +20,34 @@ func NewRequestValidator() *RequestValidator {
 
 // Validate performs the validation logic on the provided vacancy request DTO.
 func (v *RequestValidator) Validate(r *dto.Request) bool {
-	// todo add validation rules
+	// Check if each required field is provided and non-empty
+	v.checkRequiredField(r.Title, "title")
+	v.checkRequiredField(r.Company, "company")
+	v.checkRequiredField(r.Description, "description")
+	v.checkRequiredField(r.Location, "location")
+
+	// Validate PostedAt field
+	v.validatePostedAt(r.PostedAt)
 
 	return v.Valid()
+}
+
+// checkRequiredField checks if a required field is provided and non-empty.
+func (v *RequestValidator) checkRequiredField(field *string, fieldName string) {
+	if field == nil || strings.TrimSpace(*field) == "" {
+		v.AddError(fieldName, fieldName+" must be provided and cannot be empty or whitespace")
+	}
+}
+
+// validatePostedAt checks if the PostedAt field is valid.
+func (v *RequestValidator) validatePostedAt(postedAt *string) {
+	if postedAt == nil || strings.TrimSpace(*postedAt) == "" {
+		v.AddError("posted_at", "posted_at must be provided and cannot be empty or whitespace")
+		return
+	}
+
+	_, err := time.Parse(time.DateOnly, strings.TrimSpace(*postedAt))
+	if err != nil {
+		v.AddError("posted_at", "posted_at must be a valid format. Example: 2006-01-02")
+	}
 }

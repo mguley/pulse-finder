@@ -70,7 +70,7 @@ func (r *Request) ToEntity(e *entity.Vacancy) {
 		e.SetDescription(*r.Description)
 	}
 	if r.PostedAt != nil {
-		parsedTime, err := time.Parse(time.RFC3339, *r.PostedAt)
+		parsedTime, err := time.Parse(time.DateOnly, *r.PostedAt)
 		if err == nil {
 			e.SetPostedAt(parsedTime)
 		}
