@@ -18,6 +18,7 @@ type Container struct {
 	VacancyService    dependency.LazyDependency[*vacancy.Service]
 	VacancyValidator  dependency.LazyDependency[*apiValidators.RequestValidator]
 	CreateHandler     dependency.LazyDependency[*apiHandlers.CreateVacancyHandler]
+	GetHandler        dependency.LazyDependency[*apiHandlers.GetVacancyHandler]
 }
 
 // NewContainer initializes and returns a new Container with lazy dependencies for the vacancy domain.
@@ -40,6 +41,11 @@ func NewContainer(db *pgxpool.Pool, d event.Dispatcher, h *utils.Handler, e *uti
 	c.CreateHandler = dependency.LazyDependency[*apiHandlers.CreateVacancyHandler]{
 		InitFunc: func() *apiHandlers.CreateVacancyHandler {
 			return apiHandlers.NewCreateVacancyHandler(h, e, c.VacancyService.Get(), c.VacancyValidator.Get())
+		},
+	}
+	c.GetHandler = dependency.LazyDependency[*apiHandlers.GetVacancyHandler]{
+		InitFunc: func() *apiHandlers.GetVacancyHandler {
+			return apiHandlers.NewGetVacancyHandler(h, e, c.VacancyService.Get())
 		},
 	}
 
