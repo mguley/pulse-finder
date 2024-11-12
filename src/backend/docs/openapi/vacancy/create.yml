@@ -1,0 +1,129 @@
+openapi: 3.1.0
+info:
+  title: "Job Vacancy API | Create Vacancy"
+  version: "1.0.0"
+  description: |
+    This API endpoint allows clients to create a new job vacancy. Clients must provide vacancy details, including title, company, description, location, and posted date.
+
+paths:
+  /v1/vacancies:
+    post:
+      summary: "Create Job Vacancy"
+      description: |
+        Creates a new job vacancy with specified details. The client must provide the vacancy's title, company, description, location, and posted date.
+      operationId: "createVacancy"
+      tags:
+        - "Vacancies"
+      requestBody:
+        description: "Job vacancy details required for creating a new vacancy."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVacancyRequest"
+      responses:
+        "201":
+          description: "Job vacancy created successfully"
+          headers:
+            Location:
+              description: "The URL of the newly created vacancy"
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateVacancyResponse"
+        "422":
+          description: "Bad Request - Invalid input data"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Error message describing the invalid request"
+        "500":
+          description: "Internal Server Error - Unexpected server error occurred."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Error message"
+
+components:
+  schemas:
+    CreateVacancyRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: "The title of the job vacancy"
+          example: "Software Engineer"
+        company:
+          type: string
+          description: "The name of the company offering the job"
+          example: "Tech Innovators Ltd."
+        description:
+          type: string
+          description: "A description of the job responsibilities and requirements"
+          example: "Looking for an experienced software engineer with expertise in Go and cloud infrastructure."
+        posted_at:
+          type: string
+          format: date
+          description: "The timestamp when the job was posted"
+          example: "2024-11-12"
+        location:
+          type: string
+          description: "The location of the job position"
+          example: "San Francisco, CA"
+      required:
+        - title
+        - company
+        - description
+        - location
+      example:
+        title: "Software Engineer"
+        company: "Tech Innovators Ltd."
+        description: "Looking for an experienced software engineer with expertise in Go and cloud infrastructure."
+        posted_at: "2024-11-12"
+        location: "San Francisco, CA"
+
+    CreateVacancyResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "The unique identifier of the created job vacancy"
+          example: 123
+        title:
+          type: string
+          description: "The title of the job vacancy"
+          example: "Software Engineer"
+        company:
+          type: string
+          description: "The name of the company offering the job"
+          example: "Tech Innovators Ltd."
+        description:
+          type: string
+          description: "A description of the job responsibilities and requirements"
+          example: "Looking for an experienced software engineer with expertise in Go and cloud infrastructure."
+        posted_at:
+          type: string
+          format: date
+          description: "The timestamp when the job was posted"
+          example: "2024-11-12"
+        location:
+          type: string
+          description: "The location of the job position"
+          example: "San Francisco, CA"
+      example:
+        id: 123
+        title: "Software Engineer"
+        company: "Tech Innovators Ltd."
+        description: "Looking for an experienced software engineer with expertise in Go and cloud infrastructure."
+        posted_at: "2024-11-12"
+        location: "San Francisco, CA"
