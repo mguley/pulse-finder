@@ -88,19 +88,27 @@ build/api/optimized:
 production/connect:
 	ssh pulsefinder@${PRODUCTION_HOST_IP}
 
+## production/tunnel: Create SSH tunnel from port 4000 on the production server to port 9999 locally
+.PHONY: production/tunnel
+production/tunnel:
+	@echo 'Creating SSH tunnel to the production server...'
+	ssh -L 9999:${PRODUCTION_HOST_IP}:${PORT} pulsefinder@${PRODUCTION_HOST_IP}
+
 ## production/deploy-files: Deploy new binary and service files
 .PHONY: production/deploy-files
 production/deploy-files:
 	@echo 'Deploying new api binary and service files...'
 	rsync -P ./bin/linux_amd64/api pulsefinder@${PRODUCTION_HOST_IP}:/tmp/api
-	rsync -P ./remote/production/api.service pulsefinder@${PRODUCTION_HOST_IP}:/tmp/api.service
+	rsync -P ./remote/production/service/api.service pulsefinder@${PRODUCTION_HOST_IP}:/tmp/api.service
+	rsync -P ./remote/production/service/nats.service pulsefinder@${PRODUCTION_HOST_IP}:/tmp/nats.service
 	rsync -rP --delete ./infrastructure/migrations pulsefinder@${PRODUCTION_HOST_IP}:~
 	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
 	  sudo mkdir -p /opt/pulsefinder && \
 	  sudo mv /tmp/api /opt/pulsefinder/ && \
 	  sudo chown -R pulsefinder:pulsefinder /opt/pulsefinder && \
 	  sudo chmod +x /opt/pulsefinder/api && \
-	  sudo mv /tmp/api.service /etc/systemd/system/'
+	  sudo mv /tmp/api.service /etc/systemd/system/ && \
+	  sudo mv /tmp/nats.service /etc/systemd/system/'
 
 ## production/migrate: Run database migrations
 .PHONY: production/migrate
@@ -109,14 +117,16 @@ production/migrate:
 	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
 	  migrate -path ~/migrations/jobs -database $$DB_DSN up'
 
-## production/restart-service: Restart the API service
+## production/restart-service: Restart the API and NATS services
 .PHONY: production/restart-service
 production/restart-service:
-	@echo 'Restarting the api service...'
+	@echo 'Restarting the api and nats services...'
 	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
 	  sudo systemctl daemon-reload && \
 	  sudo systemctl enable api && \
-	  sudo systemctl restart api'
+	  sudo systemctl restart api && \
+	  sudo systemctl enable nats && \
+	  sudo systemctl restart nats'
 
 ## production/check-status: Check the status of the API service
 .PHONY: production/check-service-status
@@ -136,8 +146,8 @@ production/check-nginx-status:
 .PHONY: production/upload-nginx-config
 production/upload-nginx-config:
 	@echo 'Uploading Nginx configuration files and restarting Nginx...'
-	rsync -P ./remote/production/nginx.conf pulsefinder@${PRODUCTION_HOST_IP}:~
-	rsync -P ./remote/production/api-nginx.conf pulsefinder@${PRODUCTION_HOST_IP}:~
+	rsync -P ./remote/production/nginx/nginx.conf pulsefinder@${PRODUCTION_HOST_IP}:~
+	rsync -P ./remote/production/nginx/api-nginx.conf pulsefinder@${PRODUCTION_HOST_IP}:~
 	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
 	  sudo mv ~/nginx.conf /etc/nginx/nginx.conf && \
 	  sudo mv ~/api-nginx.conf /etc/nginx/conf.d/api-nginx.conf && \

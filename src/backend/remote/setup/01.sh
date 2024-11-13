@@ -109,6 +109,16 @@ install_nginx() {
     systemctl start nginx
 }
 
+# Install and configure NATS server
+install_nats() {
+    echo "Installing NATS server..."
+    # Download the latest NATS Server (nats-server) binary
+    curl -L https://github.com/nats-io/nats-server/releases/download/v2.10.22/nats-server-v2.10.22-linux-amd64.tar.gz | tar xz
+    # Move the binary to /usr/local/bin
+    mv nats-server-v2.10.22-linux-amd64/nats-server /usr/local/bin/
+    chmod +x /usr/local/bin/nats-server
+}
+
 # Upgrade system packages
 upgrade_system() {
     echo "Upgrading all system packages..."
@@ -129,6 +139,7 @@ main() {
   install_and_setup_postgresql
   set_environment_variables
   install_nginx
+  install_nats
   upgrade_system
 
   echo "Script complete! Rebooting..."

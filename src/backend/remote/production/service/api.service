@@ -2,10 +2,10 @@
 # Name for the service, which helps identify it in logs or service management tools.
 Description=Pulse finder API service
 
-# Service starts after the network is fully up and operational.
-After=network-online.target
-# Service should ensure the network is available, but it's not a strict requirement (soft dependency).
-Wants=network-online.target
+# The API depends on a running PostgreSQL database and NATS server.
+Requires=network-online.target postgresql.service nats.service
+# Service starts after the network, PostgreSQL, and NATS are fully up and operational.
+After=network-online.target postgresql.service nats.service
 
 # Configure service start rate limiting.
 # If the service is (re)started more than 5 times in 600 seconds, then don't permit it to start anymore.
