@@ -32,6 +32,27 @@ func (v *RequestValidator) Validate(r *dto.Request) bool {
 	return v.Valid()
 }
 
+// ValidateForUpdate performs validation on the vacancy request DTO for updating an existing vacancy.
+func (v *RequestValidator) ValidateForUpdate(r *dto.Request) bool {
+	if r.Title != nil {
+		v.checkRequiredField(r.Title, "title")
+	}
+	if r.Company != nil {
+		v.checkRequiredField(r.Company, "company")
+	}
+	if r.Description != nil {
+		v.checkRequiredField(r.Description, "description")
+	}
+	if r.Location != nil {
+		v.checkRequiredField(r.Location, "location")
+	}
+	if r.PostedAt != nil {
+		v.validatePostedAt(r.PostedAt)
+	}
+
+	return v.Valid()
+}
+
 // checkRequiredField checks if a required field is provided and non-empty.
 func (v *RequestValidator) checkRequiredField(field *string, fieldName string) {
 	if field == nil || strings.TrimSpace(*field) == "" {

@@ -1,0 +1,142 @@
+openapi: 3.1.0
+info:
+  title: "Job Vacancy API | Update Vacancy"
+  version: "1.0.0"
+  description: |
+    This API endpoint allows clients to update an existing job vacancy by providing its unique identifier (ID).
+    Clients may provide any subset of vacancy details, including title, company, description, location, and posted date.
+
+paths:
+  /v1/vacancies/{id}:
+    patch:
+      summary: "Update Job Vacancy"
+      description: |
+        Updates an existing job vacancy identified by its unique ID. Only the fields that are provided will be updated.
+        All fields are optional, and the current values will be retained if not specified in the request body.
+      operationId: "updateVacancy"
+      tags:
+        - "Vacancies"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "The unique identifier of the job vacancy to be updated"
+          schema:
+            type: integer
+            example: 123
+      requestBody:
+        description: "The job vacancy details to be updated. Any of the fields can be provided."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVacancyRequest"
+      responses:
+        "200":
+          description: "Job vacancy updated successfully"
+          headers:
+            Location:
+              description: "The URL of the updated vacancy"
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateVacancyResponse"
+        "404":
+          description: "Not Found - The specified job vacancy could not be found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Error message indicating that the vacancy could not be found"
+        "422":
+          description: "Bad Request - Invalid input data"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Error message describing the invalid request"
+        "500":
+          description: "Internal Server Error - Unexpected server error occurred."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Error message"
+
+components:
+  schemas:
+    UpdateVacancyRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: "The updated title of the job vacancy"
+          example: "Senior Software Engineer"
+        company:
+          type: string
+          description: "The updated name of the company offering the job"
+          example: "Tech Innovators Ltd."
+        description:
+          type: string
+          description: "An updated description of the job responsibilities and requirements"
+          example: "Looking for an experienced software engineer with expertise in Go, cloud infrastructure, and DevOps."
+        posted_at:
+          type: string
+          format: date
+          description: "The updated timestamp when the job was posted"
+          example: "2024-11-15"
+        location:
+          type: string
+          description: "The updated location of the job position"
+          example: "Remote"
+      example:
+        title: "Senior Software Engineer"
+        description: "Looking for an experienced software engineer with expertise in Go, cloud infrastructure, and DevOps."
+        location: "Remote"
+
+    UpdateVacancyResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "The unique identifier of the updated job vacancy"
+          example: 123
+        title:
+          type: string
+          description: "The updated title of the job vacancy"
+          example: "Senior Software Engineer"
+        company:
+          type: string
+          description: "The name of the company offering the job"
+          example: "Tech Innovators Ltd."
+        description:
+          type: string
+          description: "An updated description of the job responsibilities and requirements"
+          example: "Looking for an experienced software engineer with expertise in Go, cloud infrastructure, and DevOps."
+        posted_at:
+          type: string
+          format: date
+          description: "The updated timestamp when the job was posted"
+          example: "2024-11-15"
+        location:
+          type: string
+          description: "The updated location of the job position"
+          example: "Remote"
+      example:
+        id: 123
+        title: "Senior Software Engineer"
+        company: "Tech Innovators Ltd."
+        description: "Looking for an experienced software engineer with expertise in Go, cloud infrastructure, and DevOps."
+        posted_at: "2024-11-15"
+        location: "Remote"
