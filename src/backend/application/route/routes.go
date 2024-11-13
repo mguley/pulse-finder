@@ -31,11 +31,13 @@ func registerAuthenticationRoute(router *httprouter.Router, di *application.Cont
 // registerVacancyRoutes defines vacancy related routes.
 func registerVacancyRoutes(router *httprouter.Router, di *application.Container) {
 	const (
-		vacancyPostCreate = "/v1/vacancies"
-		vacancyGet        = "/v1/vacancies/:id"
-		vacancyDelete     = "/v1/vacancies/:id"
+		vacancyCreate = "/v1/vacancies"
+		vacancyGet    = "/v1/vacancies/:id"
+		vacancyDelete = "/v1/vacancies/:id"
+		vacancyPatch  = "/v1/vacancies/:id"
 	)
-	router.HandlerFunc(http.MethodPost, vacancyPostCreate, di.VacancyContainer.Get().CreateHandler.Get().Execute)
+	router.HandlerFunc(http.MethodPost, vacancyCreate, di.VacancyContainer.Get().CreateHandler.Get().Execute)
 	router.HandlerFunc(http.MethodGet, vacancyGet, di.VacancyContainer.Get().GetHandler.Get().Execute)
 	router.HandlerFunc(http.MethodDelete, vacancyDelete, di.VacancyContainer.Get().DeleteHandler.Get().Execute)
+	router.HandlerFunc(http.MethodPatch, vacancyPatch, di.VacancyContainer.Get().UpdateHandler.Get().Execute)
 }
