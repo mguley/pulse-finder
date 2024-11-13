@@ -4,8 +4,9 @@ import (
 	"application/config"
 	"domain/auth/entity"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // Service provides application services for managing JWT tokens.

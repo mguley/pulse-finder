@@ -2,8 +2,9 @@ package route
 
 import (
 	"application"
-	"github.com/julienschmidt/httprouter"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 // Register initializes all router groups.

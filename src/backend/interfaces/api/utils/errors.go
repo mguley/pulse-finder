@@ -41,7 +41,8 @@ func (e *Errors) NotFoundResponse(w http.ResponseWriter, r *http.Request) {
 
 // MethodNotAllowedResponse sends a 405 Method Not Allowed response.
 func (e *Errors) MethodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
-	e.ErrorResponse(w, r, http.StatusMethodNotAllowed, fmt.Sprintf("the %s method is not supported for this resource", r.Method))
+	e.ErrorResponse(w, r, http.StatusMethodNotAllowed,
+		fmt.Sprintf("the %s method is not supported for this resource", r.Method))
 }
 
 // FailedValidationResponse sends a 422 Unprocessable Entity response with validation errors.

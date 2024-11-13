@@ -26,10 +26,7 @@ func (s *Service) CreateVacancy(ctx context.Context, v *entity.Vacancy) error {
 		return err
 	}
 	e := events.NewVacancyCreatedEvent(v.GetId())
-	if err := s.dispatcher.Dispatch(e); err != nil {
-		return err
-	}
-	return nil
+	return s.dispatcher.Dispatch(e)
 }
 
 // UpdateVacancy updates an existing job vacancy in the database and dispatches a VacancyUpdatedEvent.
@@ -39,10 +36,7 @@ func (s *Service) UpdateVacancy(ctx context.Context, v *entity.Vacancy) error {
 		return err
 	}
 	e := events.NewVacancyUpdatedEvent(v.GetId())
-	if err := s.dispatcher.Dispatch(e); err != nil {
-		return err
-	}
-	return nil
+	return s.dispatcher.Dispatch(e)
 }
 
 // DeleteVacancy deletes an existing job vacancy from the database and dispatches a VacancyDeletedEvent.
@@ -52,10 +46,7 @@ func (s *Service) DeleteVacancy(ctx context.Context, id int64) error {
 		return err
 	}
 	e := events.NewVacancyDeletedEvent(id)
-	if err := s.dispatcher.Dispatch(e); err != nil {
-		return err
-	}
-	return nil
+	return s.dispatcher.Dispatch(e)
 }
 
 // GetVacancy retrieves a job vacancy by its unique ID from the database.

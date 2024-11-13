@@ -45,18 +45,22 @@ func NewServer() *Server {
 // Start runs the HTTP server and listens for shutdown signals for graceful stopping.
 func (s *Server) Start() error {
 	s.Logger.Info("Starting server", "address", s.HTTP.Addr)
+	// Create a channel to capture errors from ListenAndServe
+	serverErr := make(chan error, 1)
 
 	// Start the server in a separate goroutine to enable graceful shutdown
 	go func() {
 		if err := s.HTTP.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			s.Logger.Error("Server encountered an error", "error", err)
-			os.Exit(1)
+			serverErr <- err
+		} else {
+			serverErr <- nil
 		}
 	}()
 
-	// Handle graceful shutdown on interrupt signals
-	s.gracefulShutdown()
-	return nil
+	// Handle graceful shutdown on interrupt signals in a separate goroutine
+	go s.gracefulShutdown()
+	// Wait for either an error from ListenAndServe or graceful shutdown to complete
+	return <-serverErr
 }
 
 // gracefulShutdown manages graceful shutdown of the server upon receiving an interrupt signal.

@@ -4,9 +4,10 @@ import (
 	"context"
 	"domain/vacancy/entity"
 	"fmt"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"time"
 )
 
 // PgxVacancyRepository implements the VacancyRepository interface using pgx.
@@ -70,7 +71,8 @@ func (r *PgxVacancyRepository) Update(ctx context.Context, v *entity.Vacancy) er
 		WHERE id = $6 AND version = $7
 		RETURNING version
 	`
-	args := []any{v.GetTitle(), v.GetCompany(), v.GetDescription(), v.GetPostedAt(), v.GetLocation(), v.GetId(), v.GetVersion()}
+	args := []any{v.GetTitle(), v.GetCompany(), v.GetDescription(), v.GetPostedAt(), v.GetLocation(), v.GetId(),
+		v.GetVersion()}
 
 	return r.withTransaction(ctx, func(tx pgx.Tx) error {
 		var version int32

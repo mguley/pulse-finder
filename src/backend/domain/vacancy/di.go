@@ -5,11 +5,12 @@ import (
 	"application/event"
 	"application/vacancy"
 	"domain/vacancy/repository"
-	"github.com/jackc/pgx/v5/pgxpool"
 	infraVacancy "infrastructure/vacancy"
 	"interfaces/api/utils"
 	apiHandlers "interfaces/api/vacancy/handlers"
 	apiValidators "interfaces/api/vacancy/validators"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Container provides a lazily initialized set of dependencies for the vacancy domain.
