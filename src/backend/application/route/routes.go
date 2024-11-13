@@ -33,7 +33,9 @@ func registerVacancyRoutes(router *httprouter.Router, di *application.Container)
 	const (
 		vacancyPostCreate = "/v1/vacancies"
 		vacancyGet        = "/v1/vacancies/:id"
+		vacancyDelete     = "/v1/vacancies/:id"
 	)
 	router.HandlerFunc(http.MethodPost, vacancyPostCreate, di.VacancyContainer.Get().CreateHandler.Get().Execute)
 	router.HandlerFunc(http.MethodGet, vacancyGet, di.VacancyContainer.Get().GetHandler.Get().Execute)
+	router.HandlerFunc(http.MethodDelete, vacancyDelete, di.VacancyContainer.Get().DeleteHandler.Get().Execute)
 }

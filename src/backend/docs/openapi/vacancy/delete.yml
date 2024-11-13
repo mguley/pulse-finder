@@ -1,0 +1,37 @@
+openapi: 3.1.0
+info:
+  title: "Job Vacancy API | Delete Vacancy"
+  version: "1.0.0"
+  description: |
+    This API endpoint allows clients to delete an existing job vacancy by its unique identifier. Clients need to provide a valid vacancy ID.
+
+paths:
+  /v1/vacancies/{id}:
+    delete:
+      summary: "Delete Job Vacancy"
+      description: |
+        Deletes an existing job vacancy by its unique identifier. If the vacancy does not exist, an appropriate error response is returned.
+      operationId: "deleteVacancy"
+      tags:
+        - "Vacancies"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "The unique identifier of the job vacancy to be deleted"
+          schema:
+            type: integer
+            example: 123
+      responses:
+        "204":
+          description: "Job vacancy deleted successfully"
+        "404":
+          description: "Not Found - The specified job vacancy could not be found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Error message indicating that the vacancy could not be found"
