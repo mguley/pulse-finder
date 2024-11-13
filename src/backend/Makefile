@@ -20,6 +20,24 @@ run/api:
 # QUALITY CONTROL
 # =============================================================================== #
 
+## install/goimports: Install goimports for formatting
+.PHONY: install/goimports
+install/goimports:
+	@echo "Installing goimports..."
+	@go install golang.org/x/tools/cmd/goimports@latest
+
+## install/linter: Install GolangCI-Lint
+.PHONY: install/linter
+install/linter:
+	@echo "Installing GolangCI-Lint..."
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
+
+## lint: Run linter on all Go files in each module directory
+.PHONY: lint
+lint: install/linter
+	@echo "Running GolangCI-Lint on all Go files in each module directory..."
+	@find ./application ./cmd ./domain ./infrastructure ./interfaces -name '*.go' -exec dirname {} \; | sort -u | xargs $(shell go env GOPATH)/bin/golangci-lint run
+
 ## tidy: format all .go files and tidy module dependencies
 .PHONY: tidy
 tidy:

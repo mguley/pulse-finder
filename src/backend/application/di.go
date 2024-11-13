@@ -6,13 +6,14 @@ import (
 	diAuth "domain/auth"
 	diHealthcheck "domain/healthcheck"
 	diVacancy "domain/vacancy"
-	"github.com/jackc/pgx/v5/pgxpool"
 	diInfrastructure "infrastructure"
 	"infrastructure/database"
 	"interfaces/api/utils"
 	"log"
 	"log/slog"
 	"os"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Container is a struct that holds all the dependencies for the application.

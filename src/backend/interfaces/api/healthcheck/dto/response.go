@@ -27,7 +27,7 @@ func getResponsePool() func() *sync.Pool {
 // It contains fields for status, system information and a timestamp.
 type Response struct {
 	Status     *string    `json:"status,omitempty"`      // Status represents the health status of the system.
-	SystemInfo SystemInfo `json:"system_info,omitempty"` // SystemInfo contains environment and version data of the system.
+	SystemInfo SystemInfo `json:"system_info,omitempty"` // SystemInfo contains environment and version of the system.
 	Timestamp  *string    `json:"timestamp,omitempty"`   // Timestamp is the time of the health check.
 }
 
