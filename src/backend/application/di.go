@@ -8,6 +8,7 @@ import (
 	diVacancy "domain/vacancy"
 	diInfrastructure "infrastructure"
 	"infrastructure/database"
+	diInterfaces "interfaces"
 	"interfaces/api/utils"
 	"log"
 	"log/slog"
@@ -24,6 +25,7 @@ type Container struct {
 	Handler                 dependency.LazyDependency[*utils.Handler]
 	Errors                  dependency.LazyDependency[*utils.Errors]
 	InfrastructureContainer dependency.LazyDependency[*diInfrastructure.Container]
+	InterfacesContainer     dependency.LazyDependency[*diInterfaces.Container]
 	HealthCheckContainer    dependency.LazyDependency[*diHealthcheck.Container]
 	JwtAuthContainer        dependency.LazyDependency[*diAuth.Container]
 	VacancyContainer        dependency.LazyDependency[*diVacancy.Container]
@@ -63,6 +65,11 @@ func NewContainer() *Container {
 	container.InfrastructureContainer = dependency.LazyDependency[*diInfrastructure.Container]{
 		InitFunc: func() *diInfrastructure.Container {
 			return diInfrastructure.NewContainer(container.Config.Get())
+		},
+	}
+	container.InterfacesContainer = dependency.LazyDependency[*diInterfaces.Container]{
+		InitFunc: func() *diInterfaces.Container {
+			return diInterfaces.NewContainer(container.Config.Get(), container.Errors.Get())
 		},
 	}
 	container.HealthCheckContainer = dependency.LazyDependency[*diHealthcheck.Container]{

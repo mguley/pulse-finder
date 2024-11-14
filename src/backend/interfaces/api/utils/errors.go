@@ -55,10 +55,10 @@ func (e *Errors) InvalidCredentialsResponse(w http.ResponseWriter, r *http.Reque
 	e.ErrorResponse(w, r, http.StatusUnauthorized, "invalid authentication credentials")
 }
 
-// InvalidAuthenticationTokenResponse sends a 401 Unauthorized response for invalid or missing tokens.
-func (e *Errors) InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
+// Unauthorized sends a 401 Unauthorized response for invalid or missing token.
+func (e *Errors) Unauthorized(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("WWW-Authenticate", "Bearer")
-	e.ErrorResponse(w, r, http.StatusUnauthorized, "invalid or missing authentication token")
+	e.ErrorResponse(w, r, http.StatusUnauthorized, "missing or invalid authorization token")
 }
 
 // AuthenticationRequiredResponse sends a 401 Unauthorized response indicating that authentication is required.
