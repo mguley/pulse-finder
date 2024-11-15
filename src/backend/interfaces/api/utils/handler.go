@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -86,6 +87,25 @@ func (h *Handler) ReadJson(w http.ResponseWriter, r *http.Request, data any) err
 	}
 
 	return nil
+}
+
+// GetQueryString retrieves a string value from the query string or returns the provided default value.
+func (h *Handler) GetQueryString(qs url.Values, key, value string) string {
+	if !qs.Has(key) {
+		return value
+	}
+	return qs.Get(key)
+}
+
+// GetQueryInt retrieves an integer value from the query string or returns the provided default value.
+func (h *Handler) GetQueryInt(qs url.Values, key string, value int) int {
+	if !qs.Has(key) {
+		return value
+	}
+	if i, err := strconv.Atoi(qs.Get(key)); err == nil {
+		return i
+	}
+	return value
 }
 
 // handleJSONDecodeError handles various types of errors returned during JSON decoding.

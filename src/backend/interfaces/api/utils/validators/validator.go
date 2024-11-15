@@ -1,6 +1,9 @@
 package validators
 
-import "sync"
+import (
+	"slices"
+	"sync"
+)
 
 // validatorPoolInstance is the instance of the getValidatorPool function to access the pool.
 var validatorPoolInstance = getValidatorPool()
@@ -53,6 +56,11 @@ func (v *Validator) Check(ok bool, key, message string) {
 	if !ok {
 		v.AddError(key, message)
 	}
+}
+
+// PermittedValue checks if a value is within the list of permitted items.
+func (v *Validator) PermittedValue(value string, items ...string) bool {
+	return slices.Contains(items, value)
 }
 
 // Release resets the Validator instance and releases it back to the pool for reuse.

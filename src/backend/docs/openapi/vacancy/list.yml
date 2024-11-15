@@ -1,0 +1,127 @@
+openapi: 3.1.0
+info:
+  title: "Job Vacancy API | List Vacancies"
+  version: "1.0.0"
+  description: |
+    This API endpoint allows clients to list all available job vacancies. Clients can filter vacancies by title, company, and sort by various fields, including pagination options.
+
+paths:
+  /v1/vacancies:
+    get:
+      summary: "List Job Vacancies"
+      description: |
+        Retrieves a list of job vacancies based on optional filter criteria such as title, company, and sorting options.
+        The endpoint supports pagination to limit the number of vacancies returned per request.
+      operationId: "listVacancies"
+      tags:
+        - "Vacancies"
+      parameters:
+        - name: title
+          in: query
+          description: "Filter job vacancies by title (partial match allowed)"
+          required: false
+          schema:
+            type: string
+            example: "Software Engineer"
+        - name: company
+          in: query
+          description: "Filter job vacancies by company name"
+          required: false
+          schema:
+            type: string
+            example: "Tech Innovators Ltd."
+        - name: sort_field
+          in: query
+          description: "Sort field for the result set, allowed values: id, title, company"
+          required: false
+          schema:
+            type: string
+            enum: ["id", "title", "company"]
+            example: "title"
+        - name: sort_order
+          in: query
+          description: "Sort order for the results, either ascending (asc) or descending (desc)"
+          required: false
+          schema:
+            type: string
+            enum: ["asc", "desc"]
+            example: "desc"
+        - name: page
+          in: query
+          description: "Page number for pagination"
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+        - name: page_size
+          in: query
+          description: "Number of items per page for pagination"
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 10
+      responses:
+        "200":
+          description: "List of job vacancies retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListVacanciesResponse"
+        "422":
+          description: "Invalid input data - One or more query parameters are invalid"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Error message describing the invalid request"
+        "500":
+          description: "Internal Server Error - Unexpected server error occurred."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Error message"
+
+components:
+  schemas:
+    VacancyResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "The unique identifier of the job vacancy"
+          example: 123
+        title:
+          type: string
+          description: "The title of the job vacancy"
+          example: "Software Engineer"
+        company:
+          type: string
+          description: "The name of the company offering the job"
+          example: "Tech Innovators Ltd."
+        description:
+          type: string
+          description: "A description of the job responsibilities and requirements"
+          example: "Looking for an experienced software engineer with expertise in Go and cloud infrastructure."
+        posted_at:
+          type: string
+          format: date
+          description: "The timestamp when the job was posted"
+          example: "2024-11-12"
+        location:
+          type: string
+          description: "The location of the job position"
+          example: "San Francisco, CA"
+    ListVacanciesResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/VacancyResponse"

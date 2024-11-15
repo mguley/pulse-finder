@@ -4,6 +4,8 @@ import (
 	"context"
 	"domain/vacancy/entity"
 	"fmt"
+	"infrastructure/persistence/criteria"
+	"infrastructure/persistence/query"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -124,6 +126,83 @@ func (r *PgxVacancyRepository) GetList(ctx context.Context) ([]*entity.Vacancy, 
 		}
 
 		v.SetId(itemId).SetTitle(title).SetCompany(company).SetDescription(description).SetPostedAt(postedAt).
+			SetLocation(location).SetVersion(version)
+		list = append(list, &v)
+	}
+
+	// Check for row iteration errors.
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+	return list, nil
+}
+
+// GetFilteredList retrieves a list of items based on the specified filter criteria.
+func (r *PgxVacancyRepository) GetFilteredList(
+	ctx context.Context,
+	title, company string,
+	page, pageSize int,
+	sortField, sortOrder string,
+) ([]*entity.Vacancy, error) {
+	baseQuery := `SELECT * FROM job_vacancies`
+	qb := query.GetBuilder(baseQuery)
+	defer qb.Release()
+
+	criteriaBuilder := criteria.GetSearchCriteriaBuilder()
+	defer criteriaBuilder.Release()
+
+	// Add filters based on provided parameters
+	if title != "" {
+		criteriaBuilder.AddFilter("title", "ILIKE", fmt.Sprintf("%%%s%%", title))
+	}
+	if company != "" {
+		criteriaBuilder.AddFilter("company", "ILIKE", fmt.Sprintf("%%%s%%", company))
+	}
+
+	// Set logical operator for combining filters, default to "AND"
+	criteriaBuilder.SetLogicalOperator("AND")
+	searchCriteria := criteriaBuilder.Build()
+
+	// Apply search criteria to the QueryBuilder
+	qb.ApplySearchCriteria(searchCriteria)
+
+	// Set sorting and pagination
+	if sortField != "" {
+		if sortOrder == "" {
+			sortOrder = "ASC"
+		}
+		qb.SetOrderBy(sortField, sortOrder)
+	} else {
+		qb.SetOrderBy("title", "ASC") // Default sorting by title
+	}
+	qb.SetPagination(page, pageSize)
+
+	// Build the final query and arguments
+	q, args := qb.Build(searchCriteria)
+
+	// Execute the query
+	rows, err := r.db.Query(ctx, q, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch vacancies: %w", err)
+	}
+	defer rows.Close()
+
+	// Process the results
+	var list []*entity.Vacancy
+	for rows.Next() {
+		var v entity.Vacancy
+		var id int64
+		var title, company, description, location string
+		var postedAt time.Time
+		var version int32
+
+		// Scan the row into vacancy fields
+		if err = rows.Scan(&id, &title, &company, &description, &postedAt, &location, &version); err != nil {
+			return nil, fmt.Errorf("failed to scan vacancy: %w", err)
+		}
+
+		// Map scanned values
+		v.SetId(id).SetTitle(title).SetCompany(company).SetDescription(description).SetPostedAt(postedAt).
 			SetLocation(location).SetVersion(version)
 		list = append(list, &v)
 	}

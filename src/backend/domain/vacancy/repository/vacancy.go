@@ -26,4 +26,12 @@ type VacancyRepository interface {
 	// GetList retrieves a list of all job vacancies from the data source.
 	// Returns a slice of Vacancy pointers and an error if the operation fails.
 	GetList(ctx context.Context) ([]*entity.Vacancy, error)
+
+	// GetFilteredList retrieves a list of job vacancies from the data source based on filter criteria.
+	// Returns a slice of Vacancy pointers and an error if the operation fails.
+	GetFilteredList(
+		ctx context.Context,
+		title, company string,
+		page, pageSize int,
+		sortField, sortOrder string) ([]*entity.Vacancy, error)
 }
