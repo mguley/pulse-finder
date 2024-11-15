@@ -68,3 +68,19 @@ func (s *Service) ListVacancies(ctx context.Context) ([]*entity.Vacancy, error) 
 	}
 	return list, nil
 }
+
+// ListFilteredVacancies retrieves a list of job vacancies based on filter criteria from the database.
+// Accepts parameters for title, company, pagination (page and pageSize), and sorting (sortField and sortOrder).
+// Returns a slice of job vacancies or an error if retrieval fails.
+func (s *Service) ListFilteredVacancies(
+	ctx context.Context,
+	title, company string,
+	page, pageSize int,
+	sortField, sortOrder string,
+) ([]*entity.Vacancy, error) {
+	list, err := s.repository.GetFilteredList(ctx, title, company, page, pageSize, sortField, sortOrder)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
+}

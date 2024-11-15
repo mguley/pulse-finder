@@ -45,9 +45,11 @@ func registerVacancyRoutes(rg *middleware.RouteGroup, di *application.Container)
 		vacancyGet    = "/v1/vacancies/:id"
 		vacancyDelete = "/v1/vacancies/:id"
 		vacancyPatch  = "/v1/vacancies/:id"
+		vacancyList   = "/v1/vacancies"
 	)
 	rg.HandlerFunc(http.MethodPost, vacancyCreate, di.VacancyContainer.Get().CreateHandler.Get().Execute)
 	rg.HandlerFunc(http.MethodGet, vacancyGet, di.VacancyContainer.Get().GetHandler.Get().Execute)
 	rg.HandlerFunc(http.MethodDelete, vacancyDelete, di.VacancyContainer.Get().DeleteHandler.Get().Execute)
 	rg.HandlerFunc(http.MethodPatch, vacancyPatch, di.VacancyContainer.Get().UpdateHandler.Get().Execute)
+	rg.HandlerFunc(http.MethodGet, vacancyList, di.VacancyContainer.Get().ListHandler.Get().Execute)
 }
