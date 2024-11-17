@@ -1,0 +1,39 @@
+services:
+  web-db-test:
+    image: postgres:latest
+    container_name: pulse_db_test
+    environment:
+      POSTGRES_USER: user_test
+      POSTGRES_PASSWORD: pass_test
+      POSTGRES_DB: pulse_finder_test
+    volumes:
+      - pulse_finder_db_test:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      pulse_network_test:
+        ipv4_address: 120.45.0.5
+
+  db-migration-test:
+    container_name: pulse_db_migration_test
+    build:
+      dockerfile: docker/migrations/Dockerfile
+    depends_on:
+      - web-db-test
+    volumes:
+      - ./src/backend/infrastructure/migrations/jobs:/migrations
+    networks:
+      pulse_network_test:
+        ipv4_address: 120.45.0.6
+    environment:
+      DB_DSN: postgres://user_test:pass_test@120.45.0.5:5432/pulse_finder_test?sslmode=disable
+
+networks:
+  pulse_network_test:
+    ipam:
+      driver: default
+      config:
+        - subnet: 120.45.0.0/16
+
+volumes:
+  pulse_finder_db_test:
