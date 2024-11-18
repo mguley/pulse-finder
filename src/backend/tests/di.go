@@ -31,6 +31,7 @@ type TestContainer struct {
 	VacancyValidator  dependency.LazyDependency[*apiValidators.RequestValidator]
 	VacancyService    dependency.LazyDependency[*vacancy.Service]
 	CreateHandler     dependency.LazyDependency[*handlers.CreateVacancyHandler]
+	DeleteHandler     dependency.LazyDependency[*handlers.DeleteVacancyHandler]
 }
 
 // NewTestContainer creates a new instance of TestContainer.
@@ -71,6 +72,11 @@ func initVacancyDomainDependencies(c *TestContainer) {
 		InitFunc: func() *handlers.CreateVacancyHandler {
 			return handlers.NewCreateVacancyHandler(
 				c.Handler.Get(), c.Errors.Get(), c.VacancyService.Get(), c.VacancyValidator.Get())
+		},
+	}
+	c.DeleteHandler = dependency.LazyDependency[*handlers.DeleteVacancyHandler]{
+		InitFunc: func() *handlers.DeleteVacancyHandler {
+			return handlers.NewDeleteVacancyHandler(c.Handler.Get(), c.Errors.Get(), c.VacancyService.Get())
 		},
 	}
 }

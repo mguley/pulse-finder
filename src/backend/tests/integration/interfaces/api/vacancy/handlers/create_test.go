@@ -2,45 +2,24 @@ package handlers
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 	"tests"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func setupTestServer(t *testing.T) (container *tests.TestContainer, server *httptest.Server) {
-	container = tests.NewTestContainer()
-
-	router := httprouter.New()
-	router.HandlerFunc(http.MethodPost, "/v1/vacancies", container.CreateHandler.Get().Execute)
-	server = httptest.NewServer(router)
-
-	t.Cleanup(func() {
-		server.Close()
-		teardown(container.DB.Get())
-	})
-	return
-}
-
-func teardown(db *pgxpool.Pool) {
-	ctx := context.Background()
-	_, err := db.Exec(ctx, "TRUNCATE TABLE job_vacancies RESTART IDENTITY CASCADE;")
-	if err != nil {
-		log.Fatalf("failed to truncate job_vacancies: %v", err)
-	}
-}
-
+// TestCreateVacancyHandler_Success tests the successful creation of a job vacancy.
 func TestCreateVacancyHandler_Success(t *testing.T) {
-	_, server := setupTestServer(t)
+	testServer := SetupTestServer(t, func(router *httprouter.Router, container *tests.TestContainer) {
+		router.HandlerFunc(http.MethodPost, "/v1/vacancies", container.CreateHandler.Get().Execute)
+	})
+	defer testServer.Server.Close()
 
 	// Define a valid request payload
 	payload := map[string]any{
@@ -54,7 +33,7 @@ func TestCreateVacancyHandler_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make the HTTP POST request
-	resp, err := http.Post(server.URL+"/v1/vacancies", "application/json", bytes.NewBuffer(body))
+	resp, err := http.Post(testServer.Server.URL+"/v1/vacancies", "application/json", bytes.NewBuffer(body))
 	require.NoError(t, err)
 	defer func() {
 		if err = resp.Body.Close(); err != nil {
@@ -76,8 +55,12 @@ func TestCreateVacancyHandler_Success(t *testing.T) {
 	assert.Equal(t, payload["location"], response["location"])
 }
 
+// TestCreateVacancyHandler_ValidationFailure tests failure when required fields are missing.
 func TestCreateVacancyHandler_ValidationFailure(t *testing.T) {
-	_, server := setupTestServer(t)
+	testServer := SetupTestServer(t, func(router *httprouter.Router, container *tests.TestContainer) {
+		router.HandlerFunc(http.MethodPost, "/v1/vacancies", container.CreateHandler.Get().Execute)
+	})
+	defer testServer.Server.Close()
 
 	// Define an invalid request payload (missing required fields)
 	payload := map[string]any{
@@ -87,7 +70,7 @@ func TestCreateVacancyHandler_ValidationFailure(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make the HTTP POST request
-	resp, err := http.Post(server.URL+"/v1/vacancies", "application/json", bytes.NewBuffer(body))
+	resp, err := http.Post(testServer.Server.URL+"/v1/vacancies", "application/json", bytes.NewBuffer(body))
 	require.NoError(t, err)
 	defer func() {
 		if err = resp.Body.Close(); err != nil {
