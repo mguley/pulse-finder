@@ -28,6 +28,16 @@ services:
     environment:
       DB_DSN: postgres://user_test:pass_test@120.45.0.5:5432/pulse_finder_test?sslmode=disable
 
+  nats-test:
+    container_name: pulse_nats_test
+    image: nats:latest
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      pulse_network_test:
+        ipv4_address: 120.45.0.8
+
 networks:
   pulse_network_test:
     ipam:
