@@ -3,10 +3,15 @@ package tests
 import (
 	"application/config"
 	"application/dependency"
+	appEvent "application/event"
+	"application/vacancy"
 	"domain/vacancy/repository"
 	"infrastructure/database"
-	"infrastructure/vacancy"
+	"infrastructure/event"
+	infraVacancy "infrastructure/vacancy"
 	"interfaces/api/utils"
+	"interfaces/api/vacancy/handlers"
+	apiValidators "interfaces/api/vacancy/validators"
 	"log"
 	"log/slog"
 	"os"
@@ -22,6 +27,11 @@ type TestContainer struct {
 	Handler           dependency.LazyDependency[*utils.Handler]
 	Errors            dependency.LazyDependency[*utils.Errors]
 	VacancyRepository dependency.LazyDependency[repository.VacancyRepository]
+	EventDispatcher   dependency.LazyDependency[appEvent.Dispatcher]
+	VacancyValidator  dependency.LazyDependency[*apiValidators.RequestValidator]
+	VacancyService    dependency.LazyDependency[*vacancy.Service]
+	CreateHandler     dependency.LazyDependency[*handlers.CreateVacancyHandler]
+	DeleteHandler     dependency.LazyDependency[*handlers.DeleteVacancyHandler]
 }
 
 // NewTestContainer creates a new instance of TestContainer.
@@ -38,7 +48,35 @@ func NewTestContainer() *TestContainer {
 func initVacancyDomainDependencies(c *TestContainer) {
 	c.VacancyRepository = dependency.LazyDependency[repository.VacancyRepository]{
 		InitFunc: func() repository.VacancyRepository {
-			return vacancy.NewPgxVacancyRepository(c.DB.Get())
+			return infraVacancy.NewPgxVacancyRepository(c.DB.Get())
+		},
+	}
+	c.EventDispatcher = dependency.LazyDependency[appEvent.Dispatcher]{
+		InitFunc: func() appEvent.Dispatcher {
+			d, err := event.NewNatsEventDispatcher(c.Config.Get().Nats.URL)
+			if err != nil {
+				log.Fatalf("Failed to initialize NATS event dispatcher: %v", err)
+			}
+			return d
+		},
+	}
+	c.VacancyValidator = dependency.LazyDependency[*apiValidators.RequestValidator]{
+		InitFunc: apiValidators.NewRequestValidator,
+	}
+	c.VacancyService = dependency.LazyDependency[*vacancy.Service]{
+		InitFunc: func() *vacancy.Service {
+			return vacancy.NewService(c.VacancyRepository.Get(), c.EventDispatcher.Get())
+		},
+	}
+	c.CreateHandler = dependency.LazyDependency[*handlers.CreateVacancyHandler]{
+		InitFunc: func() *handlers.CreateVacancyHandler {
+			return handlers.NewCreateVacancyHandler(
+				c.Handler.Get(), c.Errors.Get(), c.VacancyService.Get(), c.VacancyValidator.Get())
+		},
+	}
+	c.DeleteHandler = dependency.LazyDependency[*handlers.DeleteVacancyHandler]{
+		InitFunc: func() *handlers.DeleteVacancyHandler {
+			return handlers.NewDeleteVacancyHandler(c.Handler.Get(), c.Errors.Get(), c.VacancyService.Get())
 		},
 	}
 }
