@@ -48,29 +48,35 @@ jobs:
       - name: Wait for NATS to be ready
         run: |
           echo "Waiting for NATS to be ready..."
-          until curl -s http://pulse_nats_test:8222/ > /dev/null; do
+          until curl -s http://localhost:8222/ > /dev/null; do
             echo "Waiting for NATS..."
             sleep 5
           done
           echo "NATS is ready."
 
+      - name: Test Database Connection
+        run: |
+          PGPASSWORD=pass_test psql -h localhost -U user_test -d pulse_finder_test -c '\dt'
+
+      - name: Test NATS Connection
+        run: |
+          curl -s http://localhost:8222/ > /dev/null || echo "Failed to connect to NATS"
+
       - name: Run Integration Tests
         working-directory: src/backend
         run: |
-          DB_DSN=postgres://user_test:pass_test@pulse_db_test:5432/pulse_finder_test?sslmode=disable \
-          NATS_URL=nats://pulse_nats_test:4222 \
-          make test/integration/no-cache
+          make test/integration
 
-      - name: Capture PostgreSQL logs if tests fail
-        if: failure()
+      - name: Capture PostgreSQL logs
+        if: always()
         run: docker logs pulse_db_test
 
-      - name: Capture NATS logs if tests fail
-        if: failure()
+      - name: Capture NATS logs
+        if: always()
         run: docker logs pulse_nats_test
 
-      - name: Capture Migration Logs if Tests Fail
-        if: failure()
+      - name: Capture Migration Logs
+        if: always()
         run: docker logs pulse_db_migration_test
 
       - name: Tear down Docker Compose
