@@ -3,24 +3,14 @@ package vacancy
 import (
 	"context"
 	"domain/vacancy/entity"
-	"log"
 	"testing"
-	"tests"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func teardown(db *pgxpool.Pool) {
-	ctx := context.Background()
-	_, err := db.Exec(ctx, "TRUNCATE TABLE job_vacancies RESTART IDENTITY CASCADE;")
-	if err != nil {
-		log.Fatalf("failed to truncate job_vacancies: %v", err)
-	}
-}
-
+// newVacancy creates a new vacancy entity for testing purposes.
 func newVacancy(title, company, description, location string) *entity.Vacancy {
 	return (&entity.Vacancy{}).
 		SetTitle(title).
@@ -30,50 +20,44 @@ func newVacancy(title, company, description, location string) *entity.Vacancy {
 		SetLocation(location)
 }
 
+// TestPgxVacancyRepository_Save tests the repository's ability to save a vacancy to the database.
 func TestPgxVacancyRepository_Save(t *testing.T) {
-	c := tests.NewTestContainer()
-	db := c.DB.Get()
-	defer teardown(db)
+	c := SetupTestDatabase(t)
+	r := c.Container.VacancyRepository.Get()
 
-	r := c.VacancyRepository.Get()
-	ctx := context.Background()
 	v := newVacancy("Integration Test Engineer", "Tech Corp", "Responsible for integration testing", "Remote")
-
-	err := r.Save(ctx, v)
+	err := r.Save(context.Background(), v)
 	require.NoError(t, err, "Failed to save vacancy to the database")
+
 	assert.NotZero(t, v.GetId(), "Expected vacancy ID to be non-zero after save")
 	assert.Equal(t, int32(1), v.GetVersion(), "Expected version to be 1 for newly created vacancy")
 }
 
+// TestPgxVacancyRepository_Get tests fetching a saved vacancy by ID.
 func TestPgxVacancyRepository_Get(t *testing.T) {
-	c := tests.NewTestContainer()
-	db := c.DB.Get()
-	defer teardown(db)
-
-	r := c.VacancyRepository.Get()
+	c := SetupTestDatabase(t)
+	r := c.Container.VacancyRepository.Get()
 	ctx := context.Background()
-	v := newVacancy("Software Engineer", "Tech Innovations", "Develop cutting-edge software solutions", "New York")
 
+	v := newVacancy("Software Engineer", "Tech Innovations", "Develop cutting-edge software solutions", "New York")
 	err := r.Save(ctx, v)
-	require.NoError(t, err, "Failed to save test vacancy")
+	require.NoError(t, err, "Failed to save vacancy to the database")
 
 	// Fetch the saved item by ID
-	result, err := r.Get(ctx, v.GetId())
-	require.NoError(t, err, "Failed to fetch vacancy by ID")
+	item, err := r.Get(ctx, v.GetId())
+	require.NoError(t, err, "Failed to get vacancy from the database")
 
-	assert.Equal(t, v.GetId(), result.GetId(), "Expected fetched ID to match saved ID")
-	assert.Equal(t, v.GetTitle(), result.GetTitle(), "Expected fetched title to match saved title")
-	assert.Equal(t, v.GetCompany(), result.GetCompany(), "Expected fetched company to match saved company")
-	assert.Equal(t, v.GetDescription(), result.GetDescription(), "Expected fetched description to match saved description")
-	assert.Equal(t, v.GetLocation(), result.GetLocation(), "Expected fetched location to match saved location")
+	assert.Equal(t, v.GetId(), item.GetId(), "Expected fetched ID to match saved ID")
+	assert.Equal(t, v.GetTitle(), item.GetTitle(), "Expected fetched title to match saved title")
+	assert.Equal(t, v.GetCompany(), item.GetCompany(), "Expected fetched company to match saved company")
+	assert.Equal(t, v.GetDescription(), item.GetDescription(), "Expected fetched description to match saved description")
+	assert.Equal(t, v.GetLocation(), item.GetLocation(), "Expected fetched location to match saved location")
 }
 
+// TestPgxVacancyRepository_Update tests updating an existing vacancy.
 func TestPgxVacancyRepository_Update(t *testing.T) {
-	c := tests.NewTestContainer()
-	db := c.DB.Get()
-	defer teardown(db)
-
-	r := c.VacancyRepository.Get()
+	c := SetupTestDatabase(t)
+	r := c.Container.VacancyRepository.Get()
 	ctx := context.Background()
 
 	// Insert a test item into the database
@@ -101,12 +85,10 @@ func TestPgxVacancyRepository_Update(t *testing.T) {
 	assert.Equal(t, v.GetVersion(), updated.GetVersion(), "Expected version to increment after update")
 }
 
+// TestPgxVacancyRepository_Update_VersionMismatch tests behavior when updating with a version mismatch.
 func TestPgxVacancyRepository_Update_VersionMismatch(t *testing.T) {
-	c := tests.NewTestContainer()
-	db := c.DB.Get()
-	defer teardown(db)
-
-	r := c.VacancyRepository.Get()
+	c := SetupTestDatabase(t)
+	r := c.Container.VacancyRepository.Get()
 	ctx := context.Background()
 
 	// Insert a test vacancy into the database
@@ -132,12 +114,10 @@ func TestPgxVacancyRepository_Update_VersionMismatch(t *testing.T) {
 	assert.Equal(t, int32(1), original.GetVersion(), "Expected the version to remain unchanged")
 }
 
+// TestPgxVacancyRepository_Delete tests deleting a vacancy.
 func TestPgxVacancyRepository_Delete(t *testing.T) {
-	c := tests.NewTestContainer()
-	db := c.DB.Get()
-	defer teardown(db)
-
-	r := c.VacancyRepository.Get()
+	c := SetupTestDatabase(t)
+	r := c.Container.VacancyRepository.Get()
 	ctx := context.Background()
 
 	// Insert a test item into the database
@@ -155,26 +135,21 @@ func TestPgxVacancyRepository_Delete(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to fetch vacancy", "Expected the error message to indicate fetch failure")
 }
 
+// TestPgxVacancyRepository_Delete_NonExistentID tests deleting a non-existent vacancy.
 func TestPgxVacancyRepository_Delete_NonExistentID(t *testing.T) {
-	c := tests.NewTestContainer()
-	db := c.DB.Get()
-	defer teardown(db)
-
-	r := c.VacancyRepository.Get()
-	ctx := context.Background()
+	c := SetupTestDatabase(t)
+	r := c.Container.VacancyRepository.Get()
 
 	// Attempt to delete a non-existent vacancy
-	err := r.Delete(ctx, 9999) // Assuming this ID does not exist
+	err := r.Delete(context.Background(), 9999) // Assuming this ID does not exist
 	assert.Error(t, err, "Expected an error for non-existent ID")
 	assert.Contains(t, err.Error(), "does not exist", "Expected the error message to indicate non-existent ID")
 }
 
+// TestPgxVacancyRepository_GetList tests retrieving a list of vacancies.
 func TestPgxVacancyRepository_GetList(t *testing.T) {
-	c := tests.NewTestContainer()
-	db := c.DB.Get()
-	defer teardown(db)
-
-	r := c.VacancyRepository.Get()
+	c := SetupTestDatabase(t)
+	r := c.Container.VacancyRepository.Get()
 	ctx := context.Background()
 
 	// Insert multiple vacancies into the database
@@ -196,26 +171,21 @@ func TestPgxVacancyRepository_GetList(t *testing.T) {
 	assert.Equal(t, v2.GetTitle(), list[1].GetTitle(), "Expected second vacancy title to match")
 }
 
+// TestPgxVacancyRepository_GetList_EmptyDatabase tests fetching from an empty database.
 func TestPgxVacancyRepository_GetList_EmptyDatabase(t *testing.T) {
-	c := tests.NewTestContainer()
-	db := c.DB.Get()
-	defer teardown(db)
-
-	r := c.VacancyRepository.Get()
-	ctx := context.Background()
+	c := SetupTestDatabase(t)
+	r := c.Container.VacancyRepository.Get()
 
 	// Fetch the list of vacancies from an empty table
-	list, err := r.GetList(ctx)
+	list, err := r.GetList(context.Background())
 	require.NoError(t, err)
 	assert.Empty(t, list, "Expected the vacancy list to be empty")
 }
 
+// TestPgxVacancyRepository_GetFilteredList tests fetching vacancies with filters.
 func TestPgxVacancyRepository_GetFilteredList(t *testing.T) {
-	c := tests.NewTestContainer()
-	db := c.DB.Get()
-	defer teardown(db)
-
-	r := c.VacancyRepository.Get()
+	c := SetupTestDatabase(t)
+	r := c.Container.VacancyRepository.Get()
 	ctx := context.Background()
 
 	// Insert test vacancies
@@ -236,12 +206,10 @@ func TestPgxVacancyRepository_GetFilteredList(t *testing.T) {
 	assert.Equal(t, "Tech Innovations", list[0].GetCompany(), "Expected the company to match")
 }
 
+// TestPgxVacancyRepository_GetFilteredList_NoFilters tests fetching vacancies with no filters applied.
 func TestPgxVacancyRepository_GetFilteredList_NoFilters(t *testing.T) {
-	c := tests.NewTestContainer()
-	db := c.DB.Get()
-	defer teardown(db)
-
-	r := c.VacancyRepository.Get()
+	c := SetupTestDatabase(t)
+	r := c.Container.VacancyRepository.Get()
 	ctx := context.Background()
 
 	// Insert test vacancies
