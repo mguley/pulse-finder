@@ -9,4 +9,4 @@ RUN apk add --no-cache curl bash && \
 WORKDIR /migrations
 
 # Default entrypoint shows migrate version and keeps the container alive
-ENTRYPOINT ["/bin/sh", "-c", "migrate -version && migrate -path=./ -database=$DB_DSN up && tail -f /dev/null"]
+ENTRYPOINT ["/bin/sh", "-c", "migrate -version && migrate -path=./ -database=$DB_DSN up"]
