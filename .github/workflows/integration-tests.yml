@@ -1,4 +1,4 @@
-name: Integration Tests
+name: Integration Tests and Linters
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch: # Allows manual triggering
 
 jobs:
-  run_tests:
+  run_tests_and_linters:
     runs-on: ubuntu-latest
 
     steps:
@@ -61,6 +61,11 @@ jobs:
       - name: Test NATS Connection
         run: |
           curl -s http://localhost:8222/ > /dev/null || echo "Failed to connect to NATS"
+
+      - name: Run Linters
+        working-directory: src/backend
+        run: |
+          make lint
 
       - name: Run Integration Tests
         working-directory: src/backend
