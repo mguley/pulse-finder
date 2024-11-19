@@ -54,16 +54,6 @@ jobs:
           done
           echo "NATS is ready."
 
-      - name: Run Integration Tests
-        working-directory: src/backend
-        run: |
-          DB_DSN=postgres://user_test:pass_test@localhost:5432/pulse_finder_test?sslmode=disable \
-          NATS_URL=nats://localhost:4222 \
-          echo "Starting integration tests with DB_DSN=$DB_DSN and NATS_URL=$NATS_URL" && \
-          DB_DSN=postgres://user_test:pass_test@localhost:5432/pulse_finder_test?sslmode=disable \
-          NATS_URL=nats://localhost:4222 \
-          make test/integration/no-cache
-
       - name: Test Database Connection
         run: |
           PGPASSWORD=pass_test psql -h localhost -U user_test -d pulse_finder_test -c '\dt'
@@ -71,6 +61,11 @@ jobs:
       - name: Test NATS Connection
         run: |
           curl -s http://localhost:8222/ > /dev/null || echo "Failed to connect to NATS"
+
+      - name: Run Integration Tests
+        working-directory: src/backend
+        run: |
+          make test/integration
 
       - name: Capture PostgreSQL logs
         if: always()

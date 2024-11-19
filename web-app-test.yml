@@ -13,11 +13,6 @@ services:
     networks:
       pulse_network_test:
         ipv4_address: 120.45.0.5
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user_test"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   db-migration-test:
     container_name: pulse_db_migration_test
@@ -25,8 +20,7 @@ services:
       context: .
       dockerfile: docker/migrations/Dockerfile
     depends_on:
-      web-db-test:
-        condition: service_healthy
+      - web-db-test
     volumes:
       - ./src/backend/infrastructure/migrations/jobs:/migrations
     networks:
