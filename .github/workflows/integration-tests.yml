@@ -39,7 +39,7 @@ jobs:
       - name: Wait for Database Migrations to Complete
         run: |
           echo "Waiting for database migrations to complete..."
-          until [ "$(docker inspect -f {{.State.Running}} pulse_db_migration_test)" == "false" ]; do
+          until docker logs pulse_db_migration_test | grep -q "1/u create_job_vacancies_table"; do
             echo "Waiting for migrations..."
             sleep 5
           done
