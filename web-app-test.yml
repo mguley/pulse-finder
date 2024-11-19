@@ -22,6 +22,7 @@ services:
   db-migration-test:
     container_name: pulse_db_migration_test
     build:
+      context: .
       dockerfile: docker/migrations/Dockerfile
     depends_on:
       web-db-test:
