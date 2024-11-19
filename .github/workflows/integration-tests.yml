@@ -70,7 +70,7 @@ jobs:
       - name: Run Integration Tests
         working-directory: src/backend
         run: |
-          make test/integration
+          make test/integration/no-cache
 
       - name: Capture PostgreSQL logs
         if: always()
