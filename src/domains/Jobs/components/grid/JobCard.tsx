@@ -1,7 +1,7 @@
 import type { FC, ReactElement } from "react";
 import { memo } from "react";
 import { Card, CardContent, Typography } from "@mui/material";
-import type { JobVacancy } from "../../services/jobService";
+import type { JobVacancy } from "../../services/jobs/response";
 import { useJobDetailsModal } from "../../context/JobDetailsModalContext";
 import JobDetailsModal from "./JobDetailsModal";
 
