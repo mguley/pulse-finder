@@ -102,10 +102,11 @@ create_user() {
     fi
 }
 
-# Configure firewall to allow SSH, HTTPS
+# Configure firewall to allow SSH, HTTP, and HTTPS
 configure_firewall() {
-    echo "Configuring firewall to allow SSH, HTTPS..."
+    echo "Configuring firewall to allow SSH, HTTP, and HTTPS..."
     ufw allow 22           # SSH
+    ufw allow 80/tcp       # HTTP
     ufw allow 443/tcp      # HTTPS
     ufw --force enable
 }
