@@ -1,8 +1,8 @@
 import type { FC, ReactNode, ReactElement } from "react";
 import { createContext, useContext, useState, useEffect } from "react";
-import type { JobVacancy, JobVacancyService } from "../services/jobService";
-import { fetchJobVacancies } from "../services/jobService";
+import JobService from "../services/jobs/service";
 import { useSearchJobs } from "./SearchJobsContextType";
+import type { JobVacancy } from "../services/jobs/response";
 
 /**
  * Represents the structure of the JobsTableContext.
@@ -55,9 +55,10 @@ export const JobsTableProvider: FC<JobsTableProviderProps> = ({
   useEffect(() => {
     (async () => {
       try {
-        const result: JobVacancyService = await fetchJobVacancies();
+        const jobService: JobService = JobService.getInstance();
+        const result = await jobService.fetchJobVacancies();
         setJobs(result.jobs);
-        setItemsPerPage(result.itemsPerPage);
+        setItemsPerPage(8);
       } catch (err) {
         setError(`Failed to load jobs data: ${err}`);
       } finally {

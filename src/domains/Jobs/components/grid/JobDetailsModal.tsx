@@ -1,7 +1,7 @@
 import type { FC, ReactElement } from "react";
 import { memo } from "react";
 import { Modal, Box, Typography } from "@mui/material";
-import type { JobVacancy } from "../../services/jobService";
+import type { JobVacancy } from "../../services/jobs/response";
 
 interface JobDetailsModalProps {
   job: JobVacancy;
@@ -55,7 +55,7 @@ const JobDetailsModal: FC<JobDetailsModalProps> = ({
         <Typography sx={{ mt: 2 }}>
           Job Description: {job.description}
         </Typography>
-        <Typography sx={{ mt: 2 }}>Posted At: {job.postedAt}</Typography>
+        <Typography sx={{ mt: 2 }}>Posted At: {job.posted_at}</Typography>
         <Typography sx={{ mt: 2 }}>Location: {job.location}</Typography>
       </Box>
     </Modal>

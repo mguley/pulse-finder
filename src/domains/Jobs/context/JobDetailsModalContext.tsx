@@ -1,6 +1,6 @@
 import type { FC, ReactNode, ReactElement } from "react";
 import { createContext, useContext, useState } from "react";
-import type { JobVacancy } from "../services/jobService";
+import type { JobVacancy } from "../services/jobs/response";
 
 /**
  * Represents the structure of the JobDetailsModalContext.
