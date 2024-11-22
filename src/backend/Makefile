@@ -119,6 +119,47 @@ build/api/optimized:
 	@echo 'Build for Linux (amd64) complete (optimized).'
 
 # =============================================================================== #
+# SSL & NGINX DEPLOYMENT TASKS
+# =============================================================================== #
+TEMP_NGINX_CONF=./remote/production/nginx/temp-nginx.conf
+FINAL_NGINX_CONF=./remote/production/nginx/api-nginx.conf
+
+## production/upload-temp-nginx-config: Upload minimal Nginx config and start Nginx
+.PHONY: production/upload-temp-nginx-config
+production/upload-temp-nginx-config:
+	@echo 'Uploading temporary Nginx configuration...'
+	rsync -P $(TEMP_NGINX_CONF) pulsefinder@${PRODUCTION_HOST_IP}:~
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo mv ~/temp-nginx.conf /etc/nginx/conf.d/temp-nginx.conf && \
+	  sudo systemctl restart nginx'
+
+## production/generate-ssl: Generate SSL certificates
+.PHONY: production/generate-ssl
+production/generate-ssl:
+	@echo 'Generating SSL certificates...'
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo certbot --nginx --non-interactive --agree-tos --email admin@mguley.com -d mguley.com'
+
+## production/apply-final-nginx-config: Apply final Nginx configuration
+.PHONY: production/apply-final-nginx-config
+production/apply-final-nginx-config:
+	@echo 'Uploading final Nginx configuration...'
+	rsync -P $(FINAL_NGINX_CONF) pulsefinder@${PRODUCTION_HOST_IP}:~
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo rm -f /etc/nginx/conf.d/temp-nginx.conf && \
+	  sudo mv ~/api-nginx.conf /etc/nginx/conf.d/api-nginx.conf && \
+	  sudo systemctl restart nginx'
+	@echo 'Final Nginx configuration applied and Nginx restarted.'
+
+## production/deploy/nginx-and-ssl: Complete Nginx and SSL deployment pipeline (new instance)
+.PHONY: production/deploy/nginx-and-ssl
+production/deploy/nginx-and-ssl:
+	@$(MAKE) production/upload-temp-nginx-config
+	@$(MAKE) production/generate-ssl
+	@$(MAKE) production/apply-final-nginx-config
+	@echo 'Nginx and SSL deployment complete.'
+
+# =============================================================================== #
 # PRODUCTION DEPLOYMENT TASKS
 # =============================================================================== #
 
@@ -198,8 +239,6 @@ production/deploy/api:
 	@$(MAKE) build/api/optimized
 	@$(MAKE) production/deploy-files
 	@$(MAKE) production/migrate
-	@$(MAKE) production/restart-service
 	@$(MAKE) production/upload-nginx-config
-	@$(MAKE) production/check-service-status
-	@$(MAKE) production/check-nginx-status
+	@$(MAKE) production/restart-service
 	@echo 'Deployment to production complete.'

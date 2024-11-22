@@ -10,10 +10,6 @@ USERNAME="pulsefinder"               # Name of the new user to create
 DB_PASSWORD=""                       # Password for Postgres pulse_finder user (prompted)
 JWT_SECRET="meewuZ8Hei2theefaiK9ahphie5oiDai1eiX6ehaeveeThae1oocha2sooMeeguog"
 
-SSL_DIR="/etc/nginx/ssl"             # Directory to store SSL certificates
-SSL_KEY="${SSL_DIR}/selfsigned.key"  # Path to SSL private key
-SSL_CERT="${SSL_DIR}/selfsigned.crt" # Path to SSL certificate
-
 # Prompt user for the DB password
 read -rsp "Enter password for pulse_finder DB user: " DB_PASSWORD
 echo ""
@@ -25,25 +21,12 @@ export LC_ALL=en_US.UTF-8
 # FUNCTIONS
 # ======================================================================== #
 
-# Generate a self-signed SSL certificate
-generate_self_signed_cert() {
-    echo "Generating a self-signed SSL certificate..."
-
-    # Create the SSL directory if it doesn't exist
-    mkdir -p "${SSL_DIR}"
-
-    # Generate the SSL certificate and private key
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-        -keyout "${SSL_KEY}" -out "${SSL_CERT}" \
-        -subj "/CN=pulse-finder-api"
-
-    echo "Self-signed SSL certificate created at:"
-    echo "  Certificate: ${SSL_CERT}"
-    echo "  Key: ${SSL_KEY}"
-
-    # Adjust permissions
-    chown -R ${USERNAME}:${USERNAME} "${SSL_DIR}"
-    chmod 600 "${SSL_DIR}"/*
+# Install Certbot (for Let's Encrypt SSL certificates)
+install_certbot() {
+    echo "Installing Certbot for Let's Encrypt..."
+    apt-get update
+    apt-get install -y certbot python3-certbot-nginx
+    echo "Certbot installed successfully."
 }
 
 # Remove default Nginx configuration
@@ -102,7 +85,7 @@ create_user() {
     fi
 }
 
-# Configure firewall to allow SSH, HTTP, and HTTPS
+# Configure firewall to allow SSH, HTTP, HTTPS
 configure_firewall() {
     echo "Configuring firewall to allow SSH, HTTP, and HTTPS..."
     ufw allow 22           # SSH
@@ -189,9 +172,9 @@ main() {
   set_environment_variables
   install_nginx
   remove_default_nginx_config
+  install_certbot
   install_nats
   upgrade_system
-  generate_self_signed_cert
   validate_nginx_config
   restart_nginx
 
