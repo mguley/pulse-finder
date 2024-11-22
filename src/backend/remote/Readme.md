@@ -79,13 +79,36 @@ migrate -version
 psql $DB_DSN
 ``` 
 ---
-#### Step 7. Update `api-nginx.conf` with Droplet IP
+#### Step 7. Configure DNS Records and Wait for Propagation
 
-Before deploying the application, update `api-nginx.conf` with the droplet IP. This ensures Nginx serves the API on
-the correct API address.
+Before proceeding to generate SSL certificates, ensure that your domain is correctly pointed to the Digital Ocean droplet
+by updating the DNS records through your domain registrar (e.g., GoDaddy):
+
+1. `Update the A Record`: Add or update the `A` record for your domain to point to the public IP address of the Digital
+    Ocean droplet
+2. `Update the www Subdomain`: Similarly, update the `A` record for the `www`subdomain to point to the same public IP address.
+3. `Wait for DNS Propagation`: DNS changes may take some time to propagate (typically a few minutes to several hours).
+   Use tools like `WhatsMyDNS` (https://www.whatsmydns.net/) to confirm the propagation.
+
+Once the domain resolves to the droplet's public IP address, you can proceed to the next step.
 
 ---
-#### Step 8. Deploy the application
+#### Step 8. Generate SSL Certificates and Deploy Nginx (Run Only Once)
+
+After DNS propagation is complete, generate SSL certificates and deploy Nginx by running the following command:
+```bash
+make production/deploy/nginx-and-ssl
+```
+
+This command will:
+- Deploy a temporary Nginx configuration to allow Certbot to generate SSL certificates.
+- Generate new SSL certificates for the domain using Let's Encrypt.
+- Apply the final Nginx configuration using the generated certificates.
+
+Once completed, your server will be configured to serve traffic over HTTPS.
+
+---
+#### Step 9. Deploy the application
 Use `make` to deploy the application to the production server.
 ```bash
 make production/deploy/api
@@ -94,3 +117,9 @@ make production/deploy/api
 This command will:
 - Deploy the new binary, Nginx configuration files and service files
 - Restart services as necessary
+
+---
+#### Summary
+
+- The `SSL certificate generation` step is required `only once` after setting up the infrastructure and updating DNS records.
+- Subsequent deployments can proceed directly with ```make production/deploy/api ``` without repeating the SSL setup.
