@@ -2,7 +2,7 @@ import type { AxiosInstance, AxiosResponse } from "axios";
 import axios from "axios";
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: "http://206.189.48.157", // Replace with your backend URL
+  baseURL: "https://mguley.com", // Replace with your backend URL
   timeout: 10000, // Timeout for requests (10 seconds)
 });
 
