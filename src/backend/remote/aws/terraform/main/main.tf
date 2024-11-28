@@ -22,3 +22,13 @@ module "key_pair" {
   environment  = "prod"                                    # Specifies the environment (e.g., prod, dev).
   region       = var.region                                # The AWS region passed to the module.
 }
+
+# Security Group Module: Creates a security group with rules for EC2 instance access.
+module "security_group_ec2" {
+  source              = "../modules/security_group"       # Path to the security group module.
+  security_group_name = "ec2-security-group"              # Name prefix for the security group.
+  security_group_tag  = "security_group_ec2"              # Tag for identifying the security group.
+  http_cidr_blocks    = ["0.0.0.0/0"]                     # CIDR blocks allowed for HTTP access. Restrict access per IP in production.
+  ssh_cidr_blocks     = ["0.0.0.0/0"]                     # CIDR blocks allowed for SSH access. Restrict access per IP in production.
+  region              = var.region                        # The AWS region passed to the module.
+}
