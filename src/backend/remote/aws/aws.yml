@@ -15,8 +15,9 @@ services:
     volumes:
       - pulse_aws_cli:/root/.aws
       - ./terraform:/workspace
+      - ./setup:/workspace/setup
     working_dir: /workspace
-    entrypoint: ["tail", "-f", "/dev/null"]
+    entrypoint: ["/bin/sh", "-c", "apk update && apk add --no-cache rsync && tail -f /dev/null"]
     networks:
       pulse_aws_cli_network:
         ipv4_address: 195.45.0.7
