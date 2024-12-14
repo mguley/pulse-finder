@@ -175,6 +175,16 @@ production/copy-logs:
 	rsync -avz pulsefinder@${PRODUCTION_HOST_IP}:/var/log/nginx/ ./logs/
 	@echo 'Nginx log files copied successfully to ./logs directory.'
 
+## production/create-blocked-ips: Ensure /etc/nginx/blocked_ips.conf exists
+.PHONY: production/create-blocked-ips
+production/create-blocked-ips:
+	@echo 'Ensuring /etc/nginx/blocked_ips.conf exists...'
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  if [ ! -f /etc/nginx/blocked_ips.conf ]; then \
+	    echo "# This file contains dynamically banned IPs" | sudo tee /etc/nginx/blocked_ips.conf > /dev/null; \
+	  fi'
+	@echo '/etc/nginx/blocked_ips.conf verified or created.'
+
 ## production/tunnel: Create SSH tunnel from port 4000 on the production server to port 9999 locally
 .PHONY: production/tunnel
 production/tunnel:
@@ -246,6 +256,7 @@ production/deploy/api:
 	@$(MAKE) build/api/optimized
 	@$(MAKE) production/deploy-files
 	@$(MAKE) production/migrate
+	@$(MAKE) production/create-blocked-ips
 	@$(MAKE) production/upload-nginx-config
 	@$(MAKE) production/restart-service
 	@echo 'Deployment to production complete.'
