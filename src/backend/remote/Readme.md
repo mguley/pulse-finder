@@ -123,3 +123,45 @@ This command will:
 
 - The `SSL certificate generation` step is required `only once` after setting up the infrastructure and updating DNS records.
 - Subsequent deployments can proceed directly with ```make production/deploy/api ``` without repeating the SSL setup.
+
+---
+### IP Blocking Feature
+
+The application now supports banning specific IP addresses at the Nginx level.
+
+##### How it works:
+
+- A geo map named `$ban_ip` is defined in `api-nginx.conf` that checks if an IP is listed in `/etc/nginx/blocked_ips.conf`.
+- If `$ban_ip` is set to `1`, Nginx returns a `403 Forbidden` for that client's requests.
+- If an IP is not listed in the file (the default case), `$ban_ip` remains `0`, and the request proceeds normally.
+
+##### Where is `blocked_ips.conf` located?
+
+- On the production server, it is stored at `/etc/nginx/blocked_ips.conf`
+- This file contains one or more lines mapping IP addresses to `1`, for example:
+
+```
+1.2.3.4 1;
+1.2.3.5 1;
+```
+
+This would block both `1.2.3.4` and `1.2.3.5`.
+
+##### Setup
+
+- Open `/etc/nginx/blocked_ips.conf` in a text editor.
+```bash
+sudo nano /etc/nginx/blocked_ips.conf
+```
+
+- Add the IP address you wish to block.
+```
+# This file contains dynamically banned IPs
+1.2.3.4 1;
+```
+
+- Save and exit.
+- Reload or restart Nginx to apply the changes
+```bash
+sudo systemctl reload nginx
+```
