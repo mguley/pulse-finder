@@ -168,6 +168,13 @@ production/deploy/nginx-and-ssl:
 production/connect:
 	ssh pulsefinder@${PRODUCTION_HOST_IP}
 
+## production/copy-logs: Copy Nginx log files from the remote server to the local environment
+.PHONY: production/copy-logs
+production/copy-logs:
+	@echo 'Copying Nginx log files from the remote server to the local environment...'
+	rsync -avz pulsefinder@${PRODUCTION_HOST_IP}:/var/log/nginx/ ./logs/
+	@echo 'Nginx log files copied successfully to ./logs directory.'
+
 ## production/tunnel: Create SSH tunnel from port 4000 on the production server to port 9999 locally
 .PHONY: production/tunnel
 production/tunnel:
