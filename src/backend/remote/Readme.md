@@ -63,7 +63,29 @@ ssh pulsefinder@<DROPLET_IP>
 On your first login, you'll be prompted to set a password for the `pulsefinder` user.
 
 ---
-#### Step 6. Verify Setup
+#### Step 6. Configure SSH access
+
+Allow SSH access for your subnet
+```bash
+sudo ufw allow from <ALLOWED-SUBNET>/16 to any port 22 comment "Allow SSH from our subnet"
+```
+
+Deny SSH for all other IPs
+```bash
+sudo ufw deny 22 comment "Deny SSH for all other IPs"
+```
+
+Status
+```bash
+sudo ufw status numbered
+```
+Reload
+```bash
+sudo ufw reload
+```
+
+---
+#### Step 7. Verify Setup
 
 After logging in, verify the setup by running the following commands:
 - Check Nginx status
@@ -79,7 +101,7 @@ migrate -version
 psql $DB_DSN
 ``` 
 ---
-#### Step 7. Configure DNS Records and Wait for Propagation
+#### Step 8. Configure DNS Records and Wait for Propagation
 
 Before proceeding to generate SSL certificates, ensure that your domain is correctly pointed to the Digital Ocean droplet
 by updating the DNS records through your domain registrar (e.g., GoDaddy):
@@ -93,7 +115,7 @@ by updating the DNS records through your domain registrar (e.g., GoDaddy):
 Once the domain resolves to the droplet's public IP address, you can proceed to the next step.
 
 ---
-#### Step 8. Generate SSL Certificates and Deploy Nginx (Run Only Once)
+#### Step 9. Generate SSL Certificates and Deploy Nginx (Run Only Once)
 
 After DNS propagation is complete, generate SSL certificates and deploy Nginx by running the following command:
 ```bash
@@ -108,7 +130,7 @@ This command will:
 Once completed, your server will be configured to serve traffic over HTTPS.
 
 ---
-#### Step 9. Deploy the application
+#### Step 10. Deploy the application
 Use `make` to deploy the application to the production server.
 ```bash
 make production/deploy/api
