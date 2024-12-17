@@ -156,6 +156,7 @@ production/apply-final-nginx-config:
 production/deploy/nginx-and-ssl:
 	@$(MAKE) production/upload-temp-nginx-config
 	@$(MAKE) production/generate-ssl
+	@$(MAKE) production/create-blocked-ips
 	@$(MAKE) production/apply-final-nginx-config
 	@echo 'Nginx and SSL deployment complete.'
 
