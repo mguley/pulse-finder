@@ -141,6 +141,19 @@ This command will:
 - Restart services as necessary
 
 ---
+#### Step 11. Block access to all ports (incoming) except 443 (Nginx)
+
+```bash
+    # IPv4: Block first and second halves of the address space
+    ufw deny from 0.0.0.0/1 to any comment "Block first half of IPv4 space"
+    ufw deny from 128.0.0.0/1 to any comment "Block second half of IPv4 space"
+
+    # IPv6: Block first and second halves of the address space
+    ufw deny from ::/1 to any comment "Block first half of IPv6 space"
+    ufw deny from 8000::/1 to any comment "Block second half of IPv6 space"
+```
+
+---
 #### Summary
 
 - The `SSL certificate generation` step is required `only once` after setting up the infrastructure and updating DNS records.

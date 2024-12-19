@@ -94,6 +94,27 @@ configure_firewall() {
     ufw --force enable
 }
 
+# Revoke access to HTTP (port 80)
+revoke_http_access() {
+    echo "Revoking access to HTTP (port 80)..."
+    ufw delete allow 80/tcp
+}
+
+# Protect against port scanning
+block_port_scanning() {
+    echo "Blocking port scanning for IPv4 and IPv6..."
+
+    # IPv4: Block first and second halves of the address space
+    ufw deny from 0.0.0.0/1 to any comment "Block first half of IPv4 space"
+    ufw deny from 128.0.0.0/1 to any comment "Block second half of IPv4 space"
+
+    # IPv6: Block first and second halves of the address space
+    ufw deny from ::/1 to any comment "Block first half of IPv6 space"
+    ufw deny from 8000::/1 to any comment "Block second half of IPv6 space"
+
+    echo "Port scanning protection enabled for IPv4 and IPv6."
+}
+
 # Set environment variables
 set_environment_variables() {
     echo "Adding environment variables to /etc/environment..."
