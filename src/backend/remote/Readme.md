@@ -200,3 +200,95 @@ sudo nano /etc/nginx/blocked_ips.conf
 ```bash
 sudo systemctl reload nginx
 ```
+
+
+---
+### Blackhole Routing for Flooding Mitigation
+
+When dealing with SYN floods or other denial-of-service (DoS) attacks, one effective approach is to use blackhole routing.
+It prevents your server from even attempting to respond to unwanted traffic, reducing resource consumption.
+
+##### Problem: SYN Floods and Half-Open TCP Connections
+- A SYN flood attack leaves many connections in a `SYN_RECV` state, consuming server resources.
+- The goal is to block or drop these connections before they reach critical services like Nginx.
+
+##### Mitigation Strategies
+
+---
+1. Verify or Strengthen UFW Rules
+
+`Ensure Correct UFW Configuration:`
+
+- Use `ufw` to block the attacking subnet:
+```bash
+sudo ufw deny from 1.2.0.0/16 to any
+```
+- To block specific ports, like HTTPS (port 443):
+```bash
+sudo ufw deny from 1.2.0.0/16 to any port 443
+```
+
+`Verify Rules:`
+
+- Check Rule Presence:
+```bash
+sudo ufw status numbered
+```
+- Ensure Correct Rule Order: UFW processes rules sequentially. Ensure no broader `ALLOW` rules precede your `DENY` rule.
+- Reload UFW
+```bash
+sudo ufw reload
+```
+
+---
+2. Use Blackhole Routes
+
+Adding a blackhole route silently discards all traffic from a specific subnet or IP.
+```bash
+sudo ip route add blackhole 1.2.0.0/16
+```
+This bypasses connection tracking, reducing overhead by immediately dropping traffic.
+
+`View Blackhole Routes:`
+```bash
+ip route | grep blackhole
+```
+
+`Remove a Blackhole Route:`
+```bash
+sudo ip route del blackhole 1.2.0.0/16
+```
+Use blackhole routes with care, as they indiscriminately drop all traffic from the specified subnet.
+
+---
+3. Drop Traffic at the System Level (iptables)
+
+If UFW is insufficient, use direct `iptables` rules for more control.
+```bash
+sudo iptables -I INPUT -s 1.2.0.0/16 -j DROP
+```
+
+This rule:
+- Inserts a DROP rule at the top of the `INPUT` chain.
+- Stops processing for traffic from the specified subnet.
+
+`View Rules:`
+```bash
+sudo iptables -L -n
+```
+
+---
+4. Rate Limiting with UFW or iptables
+
+Instead of outright blocking, limit connection attempts:
+```bash
+sudo ufw limit https/tcp
+```
+
+iptables Example:
+```bash
+sudo iptables -A INPUT -p tcp --syn --dport 443 -m limit --limit 10/second --limit-burst 20 -j ACCEPT
+sudo iptables -A INPUT -p tcp --syn --dport 443 -j DROP
+```
+
+This limits new connections to 10 per second (with a burst of up to 20), dropping excessive requests.
