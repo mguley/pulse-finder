@@ -123,6 +123,14 @@ build/api/optimized:
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -ldflags="-s -w" -o=./bin/linux_amd64/api ./cmd/main
 	@echo 'Build for Linux (amd64) complete (optimized).'
 
+## build/auth-grpc-server/optimized: Build the Auth gRPC server with optimizations
+.PHONY: build/auth-grpc-server/optimized
+build/auth-grpc-server/optimized:
+	@echo 'Building the Auth gRPC server with optimizations...'
+	@mkdir -p ./bin/auth
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -ldflags="-s -w" -o=./bin/auth/auth-grpc-server-o ./cmd/grpc/auth
+	@echo 'Build for Linux (amd64) complete (optimized).'
+
 # =============================================================================== #
 # SSL & NGINX DEPLOYMENT TASKS
 # =============================================================================== #
@@ -213,6 +221,49 @@ production/deploy-files:
 	  sudo mv /tmp/api.service /etc/systemd/system/ && \
 	  sudo mv /tmp/nats.service /etc/systemd/system/'
 
+## production/copy-tls-certificates: Copy TLS certificates to /opt for gRPC services
+.PHONY: production/copy-tls-certificates
+production/copy-tls-certificates:
+	@echo "Copying Let's Encrypt certificates to /opt/grpc-certs..."
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo mkdir -p /opt/grpc-certs && \
+	  sudo cp /etc/letsencrypt/live/api.pulse-finder.mguley.com/fullchain.pem /opt/grpc-certs/ && \
+	  sudo cp /etc/letsencrypt/live/api.pulse-finder.mguley.com/privkey.pem /opt/grpc-certs/ && \
+	  sudo chown -R pulsefinder:pulsefinder /opt/grpc-certs && \
+	  sudo chmod 600 /opt/grpc-certs/*'
+	@echo "Certificates copied and permissions set."
+
+## production/request-tls-certificates: Request Let's Encrypt TLS certificates for the gRPC servers
+.PHONY: production/request-tls-certificates
+production/request-tls-certificates:
+	@echo "Requesting Let's Encrypt TLS certificates for production..."
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  DOMAIN="api.pulse-finder.mguley.com"; \
+	  sudo certbot certonly --standalone -d $$DOMAIN --non-interactive --agree-tos -m admin@mguley.com'
+	@$(MAKE) production/copy-tls-certificates
+
+## production/deploy-auth-files: Deploy new binary and service files
+.PHONY: production/deploy-auth-files
+production/deploy-auth-files:
+	@echo 'Deploying new gRPC server binary and service files...'
+	rsync -P ./bin/auth/auth-grpc-server-o pulsefinder@${PRODUCTION_HOST_IP}:/tmp/auth-grpc-server-o
+	rsync -P ./remote/production/service/auth-grpc-server.service pulsefinder@${PRODUCTION_HOST_IP}:/tmp/auth-grpc-server.service
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo mkdir -p /opt/auth-grpc-server && \
+	  sudo mv /tmp/auth-grpc-server-o /opt/auth-grpc-server && \
+	  sudo chown -R pulsefinder:pulsefinder /opt/auth-grpc-server && \
+	  sudo chmod +x /opt/auth-grpc-server/auth-grpc-server-o && \
+	  sudo mv /tmp/auth-grpc-server.service /etc/systemd/system/'
+
+## production/restart-grpc-service: Restart the Auth gRPC service
+.PHONY: production/restart-grpc-service
+production/restart-grpc-service:
+	@echo 'Restarting the Auth gRPC service...'
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo systemctl daemon-reload && \
+	  sudo systemctl enable auth-grpc-server && \
+	  sudo systemctl restart auth-grpc-server'
+
 ## production/migrate: Run database migrations
 .PHONY: production/migrate
 production/migrate:
@@ -265,4 +316,12 @@ production/deploy/api:
 	@$(MAKE) production/create-blocked-ips
 	@$(MAKE) production/upload-nginx-config
 	@$(MAKE) production/restart-service
+	@echo 'Deployment to production complete.'
+
+## production/deploy/grpc: Deploy the gRPC server to production
+.PHONY: production/deploy/grpc
+production/deploy/grpc:
+	@$(MAKE) build/auth-grpc-server/optimized
+	@$(MAKE) production/deploy-auth-files
+	@$(MAKE) production/restart-grpc-service
 	@echo 'Deployment to production complete.'
