@@ -5,10 +5,13 @@ set -euo pipefail  # Enhanced error handling: -e (exit on error), -u (treat unse
 # VARIABLES
 # ======================================================================== #
 
-TIMEZONE="Europe/Berlin"             # Set the timezone
-USERNAME="pulsefinder"               # Name of the new user to create
-DB_PASSWORD=""                       # Password for Postgres pulse_finder user (prompted)
-JWT_SECRET="meewuZ8Hei2theefaiK9ahphie5oiDai1eiX6ehaeveeThae1oocha2sooMeeguog"
+TIMEZONE="Europe/Berlin"                                                        # Set the timezone
+USERNAME="pulsefinder"                                                          # Name of the new user to create
+DB_PASSWORD=""                                                                  # Password for Postgres pulse_finder user (prompted)
+JWT_SECRET="meewuZ8Hei2theefaiK9ahphie5oiDai1eiX6ehaeveeThae1oocha2sooMeeguog"  # JWT secret
+GRPC_AUTH_SERVER_PORT=63055                                                     # Auth gRPC server's port
+TLS_CERTIFICATE=/opt/grpc-certs/fullchain.pem                                   # Path to the TLS certificate for the gRPC servers
+TLS_KEY=/opt/grpc-certs/privkey.pem                                             # Path to the TLS key for the gRPC servers
 
 # Prompt user for the DB password
 read -rsp "Enter password for pulse_finder DB user: " DB_PASSWORD
@@ -88,16 +91,10 @@ create_user() {
 # Configure firewall to allow SSH, HTTP, HTTPS
 configure_firewall() {
     echo "Configuring firewall to allow SSH, HTTP, and HTTPS..."
-    ufw allow 22           # SSH
-    ufw allow 80/tcp       # HTTP
-    ufw allow 443/tcp      # HTTPS
+    ufw allow 22           # Allow SSH connections (subnet)
+    ufw allow 80/tcp       # Allow HTTP traffic for Let's Encrypt challenges (temporary)
+    ufw allow 443/tcp      # Allow HTTPS (API gateway)
     ufw --force enable
-}
-
-# Revoke access to HTTP (port 80)
-revoke_http_access() {
-    echo "Revoking access to HTTP (port 80)..."
-    ufw delete allow 80/tcp
 }
 
 # Protect against port scanning
@@ -112,17 +109,22 @@ block_port_scanning() {
     ufw deny from ::/1 to any comment "Block first half of IPv6 space"
     ufw deny from 8000::/1 to any comment "Block second half of IPv6 space"
 
+    ufw reload
     echo "Port scanning protection enabled for IPv4 and IPv6."
 }
 
 # Set environment variables
 set_environment_variables() {
     echo "Adding environment variables to /etc/environment..."
-    # Safeguard existing environment variables by adding only if they are not present
+    # Api
     grep -qxF "PORT=4000" /etc/environment || echo "PORT=4000" >> /etc/environment
-    grep -qxF "ENV=production" /etc/environment || echo "ENV=production" >> /etc/environment
+    grep -qxF "ENV=prod" /etc/environment || echo "ENV=prod" >> /etc/environment
     grep -qxF "DB_DSN='postgres://pulse_finder:${DB_PASSWORD}@localhost/pulse_finder'" /etc/environment || echo "DB_DSN='postgres://pulse_finder:${DB_PASSWORD}@localhost/pulse_finder'" >> /etc/environment
     grep -qxF "JWT_SECRET=${JWT_SECRET}" /etc/environment || echo "JWT_SECRET=${JWT_SECRET}" >> /etc/environment
+    # gRPC
+    grep -qxF "GRPC_AUTH_SERVER_PORT=${GRPC_AUTH_SERVER_PORT}" /etc/environment || echo "GRPC_AUTH_SERVER_PORT=${GRPC_AUTH_SERVER_PORT}" >> /etc/environment
+    grep -qxF "TLS_CERTIFICATE=${TLS_CERTIFICATE}" /etc/environment || echo "TLS_CERTIFICATE=${TLS_CERTIFICATE}" >> /etc/environment
+    grep -qxF "TLS_KEY=${TLS_KEY}" /etc/environment || echo "TLS_KEY=${TLS_KEY}" >> /etc/environment
 }
 
 # Install migrate CLI for database migrations

@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+// SetupTestContainer initializes the TestContainer.
 func SetupTestContainer(t *testing.T) authv1.AuthServiceClient {
 	container := NewTestContainer()
 

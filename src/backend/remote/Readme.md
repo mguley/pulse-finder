@@ -130,7 +130,7 @@ This command will:
 Once completed, your server will be configured to serve traffic over HTTPS.
 
 ---
-#### Step 10. Deploy the application
+#### Step 10. Deploy the application (API)
 Use `make` to deploy the application to the production server.
 ```bash
 make production/deploy/api
@@ -141,7 +141,19 @@ This command will:
 - Restart services as necessary
 
 ---
-#### Step 11. Block access to all ports (incoming) except 443 (Nginx)
+#### Step 11. Generate TLS certificates (gRPC)
+```bash
+make production/request-tls-certificates
+```
+
+---
+#### Step 12. Deploy the application (gRPC)
+```bash
+make production/deploy/grpc
+```
+
+---
+#### Step 13. Block access to all ports (incoming) except 443 (Nginx)
 
 ```bash
     # IPv4: Block first and second halves of the address space
