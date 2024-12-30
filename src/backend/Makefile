@@ -16,6 +16,11 @@ help:
 run/api:
 	go run ./cmd/main
 
+## run/auth-grpc-server: Run the Auth gRPC server
+.PHONY: run/auth-grpc-server
+run/auth-grpc-server:
+	go run ./cmd/grpc/auth
+
 # =============================================================================== #
 # QUALITY CONTROL
 # =============================================================================== #

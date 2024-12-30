@@ -7,11 +7,24 @@ import (
 
 // Configuration holds the main application configuration settings.
 type Configuration struct {
-	Port int            // Application server port.
-	Env  string         // Environment (e.g., "development", "production").
-	Jwt  JWTConfig      // Jwt configuration for authentication.
-	DB   DatabaseConfig // Database configuration for connecting to the data source.
-	Nats NatsConfig     // NATS configuration.
+	Port      int            // Application server port.
+	Env       string         // Environment (e.g., "development", "production").
+	Jwt       JWTConfig      // Jwt configuration for authentication.
+	DB        DatabaseConfig // Database configuration for connecting to the data source.
+	Nats      NatsConfig     // NATS configuration.
+	GRPC      GrpcConfig     // Configuration for gRPC server settings.
+	TLSConfig TLSConfig      // Configuration for TLS settings.
+}
+
+// GrpcConfig holds settings for gRPC servers.
+type GrpcConfig struct {
+	AuthServerPort string // Port for the Auth gRPC server.
+}
+
+// TLSConfig holds settings for TLS.
+type TLSConfig struct {
+	Certificate string // Path to the TLS certificate file.
+	Key         string // Path to the TLS key file.
 }
 
 // NatsConfig holds configuration settings for connecting to a NATS server.
@@ -34,7 +47,7 @@ type DatabaseConfig struct {
 func LoadConfig() *Configuration {
 	config := &Configuration{
 		Port: getEnvAsInt("PORT", 4005),
-		Env:  getEnv("ENV", "development"),
+		Env:  getEnv("ENV", "dev"),
 		Jwt: JWTConfig{
 			Secret: getEnv("JWT_SECRET", ""),
 		},
@@ -43,6 +56,13 @@ func LoadConfig() *Configuration {
 		},
 		Nats: NatsConfig{
 			URL: getEnv("NATS_URL", ""),
+		},
+		GRPC: GrpcConfig{
+			AuthServerPort: getEnv("GRPC_AUTH_SERVER_PORT", ""),
+		},
+		TLSConfig: TLSConfig{
+			Certificate: getEnv("TLS_CERTIFICATE", ""),
+			Key:         getEnv("TLS_KEY", ""),
 		},
 	}
 
