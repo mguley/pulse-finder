@@ -13,6 +13,7 @@ import (
 	authServer "infrastructure/grpc/auth/server"
 	vacancyHandler "infrastructure/grpc/vacancy/handler"
 	vacancyServer "infrastructure/grpc/vacancy/server"
+	"infrastructure/grpc/vacancy/validators"
 	infraVacancy "infrastructure/vacancy"
 	"log"
 
@@ -30,6 +31,7 @@ type Container struct {
 	AuthServer           dependency.LazyDependency[*authServer.AuthServer]
 	VacancyServiceServer dependency.LazyDependency[*vacancyHandler.VacancyService]
 	VacancyServer        dependency.LazyDependency[*vacancyServer.VacancyServer]
+	Validator            dependency.LazyDependency[validators.Validator]
 }
 
 // NewContainer initializes and returns a new Container with lazy dependencies for the infrastructure layer.
@@ -67,6 +69,11 @@ func NewContainer(cfg *config.Configuration) *Container {
 			return vacancy.NewService(c.VacancyRepository.Get(), c.EventDispatcher.Get())
 		},
 	}
+	c.Validator = dependency.LazyDependency[validators.Validator]{
+		InitFunc: func() validators.Validator {
+			return validators.NewVacancyValidator()
+		},
+	}
 
 	// gRPC services
 	c.AuthServiceServer = dependency.LazyDependency[*authHandler.Service]{
@@ -86,7 +93,7 @@ func NewContainer(cfg *config.Configuration) *Container {
 	}
 	c.VacancyServiceServer = dependency.LazyDependency[*vacancyHandler.VacancyService]{
 		InitFunc: func() *vacancyHandler.VacancyService {
-			return vacancyHandler.NewVacancyService(c.VacancyService.Get())
+			return vacancyHandler.NewVacancyService(c.VacancyService.Get(), c.Validator.Get())
 		},
 	}
 	c.VacancyServer = dependency.LazyDependency[*vacancyServer.VacancyServer]{
