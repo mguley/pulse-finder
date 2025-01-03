@@ -5,18 +5,33 @@ import (
 	"application/config"
 	"application/dependency"
 	appEvent "application/event"
+	"application/vacancy"
+	"domain/vacancy/repository"
+	"infrastructure/database"
 	"infrastructure/event"
 	authHandler "infrastructure/grpc/auth/handler"
-	"infrastructure/grpc/auth/server"
+	authServer "infrastructure/grpc/auth/server"
+	vacancyHandler "infrastructure/grpc/vacancy/handler"
+	vacancyServer "infrastructure/grpc/vacancy/server"
+	"infrastructure/grpc/vacancy/validators"
+	infraVacancy "infrastructure/vacancy"
 	"log"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Container provides a lazily initialized set of dependencies for the infrastructure layer.
 type Container struct {
-	EventDispatcher   dependency.LazyDependency[appEvent.Dispatcher]
-	JwtAuthService    dependency.LazyDependency[*auth.Service]
-	AuthServiceServer dependency.LazyDependency[*authHandler.Service]
-	AuthServer        dependency.LazyDependency[*server.AuthServer]
+	EventDispatcher      dependency.LazyDependency[appEvent.Dispatcher]
+	JwtAuthService       dependency.LazyDependency[*auth.Service]
+	DB                   dependency.LazyDependency[*pgxpool.Pool]
+	VacancyRepository    dependency.LazyDependency[repository.VacancyRepository]
+	VacancyService       dependency.LazyDependency[*vacancy.Service]
+	AuthServiceServer    dependency.LazyDependency[*authHandler.Service]
+	AuthServer           dependency.LazyDependency[*authServer.AuthServer]
+	VacancyServiceServer dependency.LazyDependency[*vacancyHandler.VacancyService]
+	VacancyServer        dependency.LazyDependency[*vacancyServer.VacancyServer]
+	Validator            dependency.LazyDependency[validators.Validator]
 }
 
 // NewContainer initializes and returns a new Container with lazy dependencies for the infrastructure layer.
@@ -32,24 +47,64 @@ func NewContainer(cfg *config.Configuration) *Container {
 			},
 		},
 	}
-
-	// gRPC services
+	c.DB = dependency.LazyDependency[*pgxpool.Pool]{
+		InitFunc: func() *pgxpool.Pool {
+			db, err := database.NewPostgresDB(cfg.DB.DSN)
+			if err != nil {
+				log.Fatalf("Failed to initialize database: %v", err)
+			}
+			return db
+		},
+	}
+	c.VacancyRepository = dependency.LazyDependency[repository.VacancyRepository]{
+		InitFunc: func() repository.VacancyRepository {
+			return infraVacancy.NewPgxVacancyRepository(c.DB.Get())
+		},
+	}
 	c.JwtAuthService = dependency.LazyDependency[*auth.Service]{
 		InitFunc: func() *auth.Service { return auth.NewService(cfg) },
 	}
+	c.VacancyService = dependency.LazyDependency[*vacancy.Service]{
+		InitFunc: func() *vacancy.Service {
+			return vacancy.NewService(c.VacancyRepository.Get(), c.EventDispatcher.Get())
+		},
+	}
+	c.Validator = dependency.LazyDependency[validators.Validator]{
+		InitFunc: func() validators.Validator {
+			return validators.NewVacancyValidator()
+		},
+	}
+
+	// gRPC services
 	c.AuthServiceServer = dependency.LazyDependency[*authHandler.Service]{
 		InitFunc: func() *authHandler.Service {
 			return authHandler.NewService(c.JwtAuthService.Get())
 		},
 	}
-	c.AuthServer = dependency.LazyDependency[*server.AuthServer]{
-		InitFunc: func() *server.AuthServer {
+	c.AuthServer = dependency.LazyDependency[*authServer.AuthServer]{
+		InitFunc: func() *authServer.AuthServer {
 			var env, port, certFile, keyFile = cfg.Env, cfg.GRPC.AuthServerPort, cfg.TLSConfig.Certificate, cfg.TLSConfig.Key
-			authServer, err := server.NewAuthServer(env, port, certFile, keyFile)
+			instance, err := authServer.NewAuthServer(env, port, certFile, keyFile)
 			if err != nil {
 				log.Fatalf("Failed to initialize gRPC Auth server: %v", err)
 			}
-			return authServer
+			return instance
+		},
+	}
+	c.VacancyServiceServer = dependency.LazyDependency[*vacancyHandler.VacancyService]{
+		InitFunc: func() *vacancyHandler.VacancyService {
+			return vacancyHandler.NewVacancyService(c.VacancyService.Get(), c.Validator.Get())
+		},
+	}
+	c.VacancyServer = dependency.LazyDependency[*vacancyServer.VacancyServer]{
+		InitFunc: func() *vacancyServer.VacancyServer {
+			var env, port, certFile, keyFile = cfg.Env, cfg.GRPC.VacancyServerPort, cfg.TLSConfig.Certificate,
+				cfg.TLSConfig.Key
+			instance, err := vacancyServer.NewVacancyServer(env, port, certFile, keyFile)
+			if err != nil {
+				log.Fatalf("Failed to initialize gRPC Vacancy server: %v", err)
+			}
+			return instance
 		},
 	}
 
