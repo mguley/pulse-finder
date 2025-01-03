@@ -18,7 +18,8 @@ type Configuration struct {
 
 // GrpcConfig holds settings for gRPC servers.
 type GrpcConfig struct {
-	AuthServerPort string // Port for the Auth gRPC server.
+	AuthServerPort    string // Port for the Auth gRPC server.
+	VacancyServerPort string // Port for the Vacancy gRPC server.
 }
 
 // TLSConfig holds settings for TLS.
@@ -58,7 +59,8 @@ func LoadConfig() *Configuration {
 			URL: getEnv("NATS_URL", ""),
 		},
 		GRPC: GrpcConfig{
-			AuthServerPort: getEnv("GRPC_AUTH_SERVER_PORT", ""),
+			AuthServerPort:    getEnv("GRPC_AUTH_SERVER_PORT", ""),
+			VacancyServerPort: getEnv("GRPC_VACANCY_SERVER_PORT", ""),
 		},
 		TLSConfig: TLSConfig{
 			Certificate: getEnv("TLS_CERTIFICATE", ""),

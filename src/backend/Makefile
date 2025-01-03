@@ -21,6 +21,11 @@ run/api:
 run/auth-grpc-server:
 	go run ./cmd/grpc/auth
 
+## run/vacancy-grpc-server: Run the Vacancy gRPC server
+.PHONY: run/vacancy-grpc-server
+run/vacancy-grpc-server:
+	go run ./cmd/grpc/vacancy
+
 # =============================================================================== #
 # QUALITY CONTROL
 # =============================================================================== #
