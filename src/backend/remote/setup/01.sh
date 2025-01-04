@@ -10,6 +10,7 @@ USERNAME="pulsefinder"                                                          
 DB_PASSWORD=""                                                                  # Password for Postgres pulse_finder user (prompted)
 JWT_SECRET="meewuZ8Hei2theefaiK9ahphie5oiDai1eiX6ehaeveeThae1oocha2sooMeeguog"  # JWT secret
 GRPC_AUTH_SERVER_PORT=63055                                                     # Auth gRPC server's port
+GRPC_VACANCY_SERVER_PORT=64055                                                  # Vacancy gRPC server's port
 TLS_CERTIFICATE=/opt/grpc-certs/fullchain.pem                                   # Path to the TLS certificate for the gRPC servers
 TLS_KEY=/opt/grpc-certs/privkey.pem                                             # Path to the TLS key for the gRPC servers
 
@@ -123,6 +124,7 @@ set_environment_variables() {
     grep -qxF "JWT_SECRET=${JWT_SECRET}" /etc/environment || echo "JWT_SECRET=${JWT_SECRET}" >> /etc/environment
     # gRPC
     grep -qxF "GRPC_AUTH_SERVER_PORT=${GRPC_AUTH_SERVER_PORT}" /etc/environment || echo "GRPC_AUTH_SERVER_PORT=${GRPC_AUTH_SERVER_PORT}" >> /etc/environment
+    grep -qxF "GRPC_VACANCY_SERVER_PORT=${GRPC_VACANCY_SERVER_PORT}" /etc/environment || echo "GRPC_VACANCY_SERVER_PORT=${GRPC_VACANCY_SERVER_PORT}" >> /etc/environment
     grep -qxF "TLS_CERTIFICATE=${TLS_CERTIFICATE}" /etc/environment || echo "TLS_CERTIFICATE=${TLS_CERTIFICATE}" >> /etc/environment
     grep -qxF "TLS_KEY=${TLS_KEY}" /etc/environment || echo "TLS_KEY=${TLS_KEY}" >> /etc/environment
 }
