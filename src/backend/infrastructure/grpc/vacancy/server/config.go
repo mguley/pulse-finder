@@ -7,10 +7,11 @@ import (
 
 // Config holds the server configuration settings.
 type Config struct {
-	TLSEnabled bool   // Whether TLS is enabled
-	CertFile   string // Path to the TLS certificate file
-	KeyFile    string // Path to the TLS key file
-	Port       string // Port the server listens on
+	TLSEnabled   bool                // Whether TLS is enabled
+	CertFile     string              // Path to the TLS certificate file
+	KeyFile      string              // Path to the TLS key file
+	Port         string              // Port the server listens on
+	Interceptors []grpc.ServerOption // Interceptors and other gRPC server options
 }
 
 // Option defines a functional option for configuring the server.
@@ -32,10 +33,18 @@ func WithPort(port string) Option {
 	}
 }
 
+// WithInterceptors adds interceptors and other options for the gRPC server.
+func WithInterceptors(interceptors ...grpc.ServerOption) Option {
+	return func(c *Config) {
+		c.Interceptors = append(c.Interceptors, interceptors...)
+	}
+}
+
 // NewGRPCServer initializes a gRPC server with the provided options.
 func NewGRPCServer(opts ...Option) (*grpc.Server, *Config, error) {
 	config := &Config{
-		TLSEnabled: false,
+		TLSEnabled:   false,
+		Interceptors: []grpc.ServerOption{}, // Default to no interceptors
 	}
 
 	// Apply options to configure the server
@@ -43,17 +52,21 @@ func NewGRPCServer(opts ...Option) (*grpc.Server, *Config, error) {
 		opt(config)
 	}
 
-	// Create gRPC server with or without TLS
-	var grpcServer *grpc.Server
+	// gRPC server options
+	var serverOpts []grpc.ServerOption
+
+	// Add TLS credentials if enabled
 	if config.TLSEnabled {
 		cred, err := credentials.NewServerTLSFromFile(config.CertFile, config.KeyFile)
 		if err != nil {
 			return nil, nil, err
 		}
-		grpcServer = grpc.NewServer(grpc.Creds(cred))
-	} else {
-		grpcServer = grpc.NewServer()
+		serverOpts = append(serverOpts, grpc.Creds(cred))
 	}
 
+	// Add interceptors if present
+	serverOpts = append(serverOpts, config.Interceptors...)
+
+	grpcServer := grpc.NewServer(serverOpts...)
 	return grpcServer, config, nil
 }

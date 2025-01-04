@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"application/auth"
 	"context"
+	"infrastructure/grpc/vacancy/interceptors"
 	vacancyv1 "infrastructure/proto/vacancy/gen"
 	"net"
 	"testing"
@@ -13,15 +15,18 @@ import (
 )
 
 // SetupTestContainer initializes the TestContainer.
-func SetupTestContainer(t *testing.T) vacancyv1.VacancyServiceClient {
+func SetupTestContainer(t *testing.T) (vacancyv1.VacancyServiceClient, *auth.Service) {
 	container := NewTestContainer()
 
 	// Create a listener for the in-process gRPC server
 	listener, err := net.Listen("tcp", ":0") // Use a random available port
 	require.NoError(t, err, "Failed to create listener")
 
-	// Initialize the gRPC server and register the VacancyService
-	server := grpc.NewServer()
+	// Initialize the gRPC server with the JWT interceptor
+	jwtService := container.JwtService.Get()
+	server := grpc.NewServer(grpc.UnaryInterceptor(interceptors.JwtVacancyInterceptor(jwtService)))
+
+	// Register the VacancyService
 	vacancyService := container.VacancyServiceServer.Get()
 	vacancyv1.RegisterVacancyServiceServer(server, vacancyService)
 
@@ -55,7 +60,7 @@ func SetupTestContainer(t *testing.T) vacancyv1.VacancyServiceClient {
 		teardown(container.DB.Get(), t)
 	})
 
-	return vacancyv1.NewVacancyServiceClient(conn)
+	return vacancyv1.NewVacancyServiceClient(conn), jwtService
 }
 
 // teardown cleans up the database by truncating tables.
