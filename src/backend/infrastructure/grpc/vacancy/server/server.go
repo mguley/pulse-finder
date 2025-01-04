@@ -1,8 +1,10 @@
 package server
 
 import (
+	"application/auth"
 	"errors"
 	"fmt"
+	"infrastructure/grpc/vacancy/interceptors"
 	vacancyv1 "infrastructure/proto/vacancy/gen"
 	"log"
 	"net"
@@ -23,23 +25,26 @@ type VacancyServer struct {
 }
 
 // NewVacancyServer creates a new instance of VacancyServer based on the provided configuration.
-func NewVacancyServer(env, port, certFile, keyFile string) (*VacancyServer, error) {
+func NewVacancyServer(env, port, certFile, keyFile string, jwtService *auth.Service) (*VacancyServer, error) {
 	var (
 		grpcServer   *grpc.Server
 		serverConfig *Config
 		listener     net.Listener
 		err          error
 	)
+	jwtInterceptor := grpc.UnaryInterceptor(interceptors.JwtVacancyInterceptor(jwtService))
 
 	switch env {
 	case "prod":
 		// Enable TLS in production
 		grpcServer, serverConfig, err = NewGRPCServer(
 			WithTLS(certFile, keyFile),
-			WithPort(port))
+			WithPort(port),
+			WithInterceptors(jwtInterceptor))
 	case "dev":
 		grpcServer, serverConfig, err = NewGRPCServer(
-			WithPort(port))
+			WithPort(port),
+			WithInterceptors(jwtInterceptor))
 	default:
 		return nil, errors.New("unsupported environment; must be \"prod\" or \"dev\"")
 	}

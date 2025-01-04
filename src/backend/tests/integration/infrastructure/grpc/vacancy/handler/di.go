@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"application/auth"
 	"application/config"
 	"application/dependency"
 	appEvent "application/event"
@@ -19,6 +20,7 @@ import (
 // TestContainer holds dependencies for the integration tests.
 type TestContainer struct {
 	Config               dependency.LazyDependency[*config.Configuration]
+	JwtService           dependency.LazyDependency[*auth.Service]
 	EventDispatcher      dependency.LazyDependency[appEvent.Dispatcher]
 	DB                   dependency.LazyDependency[*pgxpool.Pool]
 	VacancyRepository    dependency.LazyDependency[repository.VacancyRepository]
@@ -33,6 +35,9 @@ func NewTestContainer() *TestContainer {
 
 	c.Config = dependency.LazyDependency[*config.Configuration]{
 		InitFunc: config.LoadConfig,
+	}
+	c.JwtService = dependency.LazyDependency[*auth.Service]{
+		InitFunc: func() *auth.Service { return auth.NewService(c.Config.Get()) },
 	}
 	c.EventDispatcher = dependency.LazyDependency[appEvent.Dispatcher]{
 		InitFunc: func() appEvent.Dispatcher {

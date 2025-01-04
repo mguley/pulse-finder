@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"domain/auth/entity"
+	"fmt"
 	vacancyv1 "infrastructure/proto/vacancy/gen"
 	"testing"
 	"time"
@@ -9,29 +11,51 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
 // TestVacancyService_CreateVacancy tests the CreateVacancy method of the VacancyServiceServer.
 //
 // This test covers the following scenarios:
-// 1. A valid request with all required fields should successfully create a vacancy.
-// 2. A request missing the required "Title" field should return an InvalidArgument error.
-// 3. A request with an invalid date format for the "PostedAt" field should return an InvalidArgument error.
+// 1. A valid request with a valid token should successfully create a vacancy.
+// 2. A request without an Authorization header should return an Unauthenticated error.
+// 3. A request with an invalid token format should return an Unauthenticated error.
+// 4. A request with an expired token should return an Unauthenticated error.
+// 5. A request missing the required "Title" field should return an InvalidArgument error.
+// 6. A request with an invalid date format for the "PostedAt" field should return an InvalidArgument error.
 //
 // The test uses the SetupTestContainer function to initialize the test dependencies and ensures proper cleanup of resources.
 func TestVacancyService_CreateVacancy(t *testing.T) {
-	client := SetupTestContainer(t)
+	client, jwtService := SetupTestContainer(t)
+
+	// Generate a valid token
+	validClaims := entity.GetTokenClaims().
+		SetIssuer("test-issuer").
+		SetScope([]string{"test"}).
+		SetExpiresAt(time.Now().Add(time.Hour).Unix())
+	validToken, err := jwtService.Generate(validClaims)
+	require.NoError(t, err, "could not generate token")
+
+	// Generate an expired token
+	expiredClaims := entity.GetTokenClaims().
+		SetIssuer("test-issuer").
+		SetScope([]string{"test"}).
+		SetExpiresAt(time.Now().Add(-time.Hour).Unix())
+	expiredToken, err := jwtService.Generate(expiredClaims)
+	require.NoError(t, err, "could not generate expired token")
 
 	// Define test cases
 	tests := []struct {
 		name        string
+		token       string
 		request     *vacancyv1.CreateVacancyRequest
 		expectedErr bool
 		errCode     codes.Code
 	}{
 		{
-			name: "Valid Request",
+			name:  "Valid Request with Valid Token",
+			token: validToken,
 			request: &vacancyv1.CreateVacancyRequest{
 				Title:       "Software Engineer",
 				Company:     "Tech Co.",
@@ -42,7 +66,35 @@ func TestVacancyService_CreateVacancy(t *testing.T) {
 			expectedErr: false,
 		},
 		{
-			name: "Missing Title",
+			name:        "Missing Authorization Header",
+			token:       "",
+			request:     &vacancyv1.CreateVacancyRequest{},
+			expectedErr: true,
+			errCode:     codes.Unauthenticated,
+		},
+		{
+			name:        "Invalid Token Format",
+			token:       "InvalidTokenFormat",
+			request:     &vacancyv1.CreateVacancyRequest{},
+			expectedErr: true,
+			errCode:     codes.Unauthenticated,
+		},
+		{
+			name:  "Expired Token",
+			token: expiredToken,
+			request: &vacancyv1.CreateVacancyRequest{
+				Title:       "Expired Token Test",
+				Company:     "Tech Co.",
+				Description: "Exciting opportunity in tech.",
+				PostedAt:    "2025-01-01",
+				Location:    "New York",
+			},
+			expectedErr: true,
+			errCode:     codes.Unauthenticated,
+		},
+		{
+			name:  "Missing Title",
+			token: validToken,
 			request: &vacancyv1.CreateVacancyRequest{
 				Company:     "Tech Co.",
 				Description: "Exciting opportunity in tech.",
@@ -53,7 +105,8 @@ func TestVacancyService_CreateVacancy(t *testing.T) {
 			errCode:     codes.InvalidArgument,
 		},
 		{
-			name: "Invalid Date Format",
+			name:  "Invalid Date Format",
+			token: validToken,
 			request: &vacancyv1.CreateVacancyRequest{
 				Title:       "Software Engineer",
 				Company:     "Tech Co.",
@@ -71,6 +124,13 @@ func TestVacancyService_CreateVacancy(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 			defer cancel()
+
+			// Add the token to the metadata
+			md := map[string]string{}
+			if tc.token != "" {
+				md["authorization"] = fmt.Sprintf("Bearer %s", tc.token)
+			}
+			ctx = metadata.NewOutgoingContext(ctx, metadata.New(md))
 
 			// Make the gRPC call
 			resp, err := client.CreateVacancy(ctx, tc.request)

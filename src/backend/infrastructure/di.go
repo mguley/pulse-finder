@@ -100,7 +100,7 @@ func NewContainer(cfg *config.Configuration) *Container {
 		InitFunc: func() *vacancyServer.VacancyServer {
 			var env, port, certFile, keyFile = cfg.Env, cfg.GRPC.VacancyServerPort, cfg.TLSConfig.Certificate,
 				cfg.TLSConfig.Key
-			instance, err := vacancyServer.NewVacancyServer(env, port, certFile, keyFile)
+			instance, err := vacancyServer.NewVacancyServer(env, port, certFile, keyFile, c.JwtAuthService.Get())
 			if err != nil {
 				log.Fatalf("Failed to initialize gRPC Vacancy server: %v", err)
 			}
