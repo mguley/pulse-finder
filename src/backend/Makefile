@@ -136,6 +136,14 @@ build/auth-grpc-server/optimized:
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -ldflags="-s -w" -o=./bin/auth/auth-grpc-server-o ./cmd/grpc/auth
 	@echo 'Build for Linux (amd64) complete (optimized).'
 
+## build/vacancy-grpc-server/optimized: Build the Vacancy gRPC server with optimizations
+.PHONY: build/vacancy-grpc-server/optimized
+build/vacancy-grpc-server/optimized:
+	@echo 'Building the Vacancy gRPC server with optimizations...'
+	@mkdir -p ./bin/vacancy
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -ldflags="-s -w" -o=./bin/vacancy/vacancy-grpc-server-o ./cmd/grpc/vacancy
+	@echo 'Build for Linux (amd64) complete (optimized).'
+
 # =============================================================================== #
 # SSL & NGINX DEPLOYMENT TASKS
 # =============================================================================== #
@@ -250,9 +258,9 @@ production/request-tls-certificates:
 ## production/deploy-auth-files: Deploy new binary and service files
 .PHONY: production/deploy-auth-files
 production/deploy-auth-files:
-	@echo 'Deploying new gRPC server binary and service files...'
+	@echo 'Deploying new gRPC server binary (Auth) and service files...'
 	rsync -P ./bin/auth/auth-grpc-server-o pulsefinder@${PRODUCTION_HOST_IP}:/tmp/auth-grpc-server-o
-	rsync -P ./remote/production/service/auth-grpc-server.service pulsefinder@${PRODUCTION_HOST_IP}:/tmp/auth-grpc-server.service
+	rsync -P ./remote/production/service/grpc/auth-grpc-server.service pulsefinder@${PRODUCTION_HOST_IP}:/tmp/auth-grpc-server.service
 	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
 	  sudo mkdir -p /opt/auth-grpc-server && \
 	  sudo mv /tmp/auth-grpc-server-o /opt/auth-grpc-server && \
@@ -260,14 +268,36 @@ production/deploy-auth-files:
 	  sudo chmod +x /opt/auth-grpc-server/auth-grpc-server-o && \
 	  sudo mv /tmp/auth-grpc-server.service /etc/systemd/system/'
 
-## production/restart-grpc-service: Restart the Auth gRPC service
-.PHONY: production/restart-grpc-service
-production/restart-grpc-service:
+## production/deploy-vacancy-files: Deploy new binary and service files
+.PHONY: production/deploy-vacancy-files
+production/deploy-vacancy-files:
+	@echo 'Deploying new gRPC server binary (Vacancy) and service files...'
+	rsync -P ./bin/vacancy/vacancy-grpc-server-o pulsefinder@${PRODUCTION_HOST_IP}:/tmp/vacancy-grpc-server-o
+	rsync -P ./remote/production/service/grpc/vacancy-grpc-server.service pulsefinder@${PRODUCTION_HOST_IP}:/tmp/vacancy-grpc-server.service
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo mkdir -p /opt/vacancy-grpc-server && \
+	  sudo mv /tmp/vacancy-grpc-server-o /opt/vacancy-grpc-server && \
+	  sudo chown -R pulsefinder:pulsefinder /opt/vacancy-grpc-server && \
+	  sudo chmod +x /opt/vacancy-grpc-server/vacancy-grpc-server-o && \
+	  sudo mv /tmp/vacancy-grpc-server.service /etc/systemd/system/'
+
+## production/restart-auth-grpc-service: Restart the Auth gRPC service
+.PHONY: production/restart-auth-grpc-service
+production/restart-auth-grpc-service:
 	@echo 'Restarting the Auth gRPC service...'
 	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
 	  sudo systemctl daemon-reload && \
 	  sudo systemctl enable auth-grpc-server && \
 	  sudo systemctl restart auth-grpc-server'
+
+## production/restart-vacancy-grpc-service: Restart the Vacancy gRPC service
+.PHONY: production/restart-vacancy-grpc-service
+production/restart-vacancy-grpc-service:
+	@echo 'Restarting the Vacancy gRPC service...'
+	ssh -t pulsefinder@${PRODUCTION_HOST_IP} 'set -e; \
+	  sudo systemctl daemon-reload && \
+	  sudo systemctl enable vacancy-grpc-server && \
+	  sudo systemctl restart vacancy-grpc-server'
 
 ## production/migrate: Run database migrations
 .PHONY: production/migrate
@@ -323,10 +353,14 @@ production/deploy/api:
 	@$(MAKE) production/restart-service
 	@echo 'Deployment to production complete.'
 
-## production/deploy/grpc: Deploy the gRPC server to production
+## production/deploy/grpc: Deploy the gRPC servers to production (Auth/Vacancy)
 .PHONY: production/deploy/grpc
 production/deploy/grpc:
 	@$(MAKE) build/auth-grpc-server/optimized
 	@$(MAKE) production/deploy-auth-files
-	@$(MAKE) production/restart-grpc-service
+	@$(MAKE) production/restart-auth-grpc-service
+
+	@$(MAKE) build/vacancy-grpc-server/optimized
+	@$(MAKE) production/deploy-vacancy-files
+	@$(MAKE) production/restart-vacancy-grpc-service
 	@echo 'Deployment to production complete.'
