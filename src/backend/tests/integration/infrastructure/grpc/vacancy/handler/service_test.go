@@ -150,3 +150,105 @@ func TestVacancyService_CreateVacancy(t *testing.T) {
 		})
 	}
 }
+
+// TestVacancyService_DeleteVacancy tests the DeleteVacancy method of the VacancyServiceServer.
+//
+// This test covers the following scenarios:
+// 1. A valid request with a correct ID and valid token should delete the vacancy successfully.
+// 2. A request with an invalid ID (negative value) should return an InvalidArgument error.
+// 3. A request without an Authorization header should return an Unauthenticated error.
+// 4. A request with a non-existent ID should return an Internal error.
+//
+// The test uses the SetupTestContainer function to initialize the test dependencies and ensures proper cleanup of resources.
+func TestVacancyService_DeleteVacancy(t *testing.T) {
+	client, jwtService := SetupTestContainer(t)
+
+	// Generate a valid token
+	claims := entity.GetTokenClaims().
+		SetIssuer("test-issuer").
+		SetScope([]string{"test"}).
+		SetExpiresAt(time.Now().Add(time.Hour).Unix())
+	validToken, err := jwtService.Generate(claims)
+	require.NoError(t, err, "could not generate token")
+
+	// Add the token to the metadata
+	md := map[string]string{}
+	md["authorization"] = fmt.Sprintf("Bearer %s", validToken)
+	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(md))
+
+	// Add a test vacancy to delete
+	createResp, err := client.CreateVacancy(ctx, &vacancyv1.CreateVacancyRequest{
+		Title:       "Software Engineer",
+		Company:     "Tech Co.",
+		Description: "Exciting opportunity in tech.",
+		PostedAt:    "2025-01-01",
+		Location:    "New York",
+	})
+	require.NoError(t, err, "could not create vacancy")
+
+	// Define test cases
+	tests := []struct {
+		name        string
+		token       string
+		request     *vacancyv1.DeleteVacancyRequest
+		expectedErr bool
+		errCode     codes.Code
+	}{
+		{
+			name:  "Valid Deletion",
+			token: validToken,
+			request: &vacancyv1.DeleteVacancyRequest{
+				Id: createResp.Id,
+			},
+			expectedErr: false,
+		},
+		{
+			name:  "Invalid ID",
+			token: validToken,
+			request: &vacancyv1.DeleteVacancyRequest{
+				Id: -1,
+			},
+			expectedErr: true,
+			errCode:     codes.InvalidArgument,
+		},
+		{
+			name:  "Missing Authorization Header",
+			token: "",
+			request: &vacancyv1.DeleteVacancyRequest{
+				Id: createResp.Id,
+			},
+			expectedErr: true,
+			errCode:     codes.Unauthenticated,
+		},
+		{
+			name:  "Vacancy not found",
+			token: validToken,
+			request: &vacancyv1.DeleteVacancyRequest{
+				Id: createResp.Id + 1_000, // Non-existent ID
+			},
+			expectedErr: true,
+			errCode:     codes.Internal,
+		},
+	}
+
+	// Execute test cases
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx = metadata.NewOutgoingContext(context.Background(), metadata.Pairs("authorization", "Bearer "+tc.token))
+
+			// Make the gRPC call
+			resp, err := client.DeleteVacancy(ctx, tc.request)
+
+			if tc.expectedErr {
+				// Validate the expected error
+				require.Error(t, err, "expected an error but got none")
+				st, ok := status.FromError(err)
+				require.True(t, ok, "error is not a gRPC status")
+				assert.Equal(t, tc.errCode, st.Code(), "unexpected gRPC status code")
+			} else {
+				require.NoError(t, err, "unexpected error")
+				assert.Equal(t, fmt.Sprintf("Vacancy with ID %d deleted", tc.request.Id), resp.Message)
+			}
+		})
+	}
+}
