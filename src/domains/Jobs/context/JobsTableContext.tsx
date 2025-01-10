@@ -56,7 +56,7 @@ export const JobsTableProvider: FC<JobsTableProviderProps> = ({
     (async () => {
       try {
         const jobService: JobService = JobService.getInstance();
-        const result = await jobService.fetchJobVacancies();
+        const result = await jobService.fetchJobVacancies({ pageSize: 75 });
         setJobs(result.jobs);
         setItemsPerPage(8);
       } catch (err) {

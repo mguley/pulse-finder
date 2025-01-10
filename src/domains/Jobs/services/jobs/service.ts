@@ -29,17 +29,22 @@ class JobService {
   /**
    * Fetches job vacancies with optional pagination and filters.
    *
-   * @param {number} [page=1] - The current page of results.
-   * @param {number} [pageSize=10] - The number of results per page.
-   * @param {{ title?: string; company?: string }} [filters={}] - Filters to apply to the job search.
+   * @param {Object} options - The options for fetching job vacancies.
+   * @param {number} [options.page=1] - The current page of results.
+   * @param {number} [options.pageSize=15] - The number of results per page.
+   * @param {{ title?: string; company?: string }} [options.filters={}] - Filters to apply to the job search.
    * @returns {Promise<JobsResponse>} A promise resolving to the fetched job vacancies data.
    * @throws {Error} If the API request fails.
    */
-  public async fetchJobVacancies(
-    page: number = 1,
-    pageSize: number = 15,
-    filters: { title?: string; company?: string } = {},
-  ): Promise<JobsResponse> {
+  public async fetchJobVacancies({
+    page = 1,
+    pageSize = 15,
+    filters = {},
+  }: {
+    page?: number;
+    pageSize?: number;
+    filters?: { title?: string; company?: string };
+  } = {}): Promise<JobsResponse> {
     try {
       const jwtService = JwtService.getInstance();
       const token = await jwtService.getToken();
