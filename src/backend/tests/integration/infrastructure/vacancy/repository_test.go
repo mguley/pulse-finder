@@ -225,3 +225,42 @@ func TestPgxVacancyRepository_GetFilteredList_NoFilters(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, list, 2, "Expected exactly 2 vacancies in the list")
 }
+
+// TestPgxVacancyRepository_Purge tests the repository's ability to purge all vacancies from the database.
+func TestPgxVacancyRepository_Purge(t *testing.T) {
+	c := SetupTestDatabase(t)
+	r := c.Container.VacancyRepository.Get()
+	ctx := context.Background()
+
+	// Insert multiple test vacancies
+	v1 := newVacancy("Software Engineer", "Tech Innovations", "Develop cutting-edge software solutions", "New York")
+	v2 := newVacancy("Data Scientist", "AI Corp", "Analyze data and build AI models", "San Francisco")
+	v3 := newVacancy("Product Manager", "Innovative Tech", "Oversee product development", "Remote")
+
+	err := r.Save(ctx, v1)
+	require.NoError(t, err, "Failed to save first vacancy")
+	err = r.Save(ctx, v2)
+	require.NoError(t, err, "Failed to save second vacancy")
+	err = r.Save(ctx, v3)
+	require.NoError(t, err, "Failed to save third vacancy")
+
+	// Verify that the vacancies exist
+	list, err := r.GetList(ctx)
+	require.NoError(t, err, "Failed to fetch vacancy list before purge")
+	assert.Len(t, list, 3, "Expected exactly 3 vacancies in the list before purge")
+
+	// Perform the purge operation
+	err = r.Purge(ctx)
+	require.NoError(t, err, "Failed to purge vacancies")
+
+	// Verify that the vacancies have been purged
+	list, err = r.GetList(ctx)
+	require.NoError(t, err, "Failed to fetch vacancy list after purge")
+	assert.Empty(t, list, "Expected no vacancies in the list after purge")
+
+	// Verify that primary key sequence is reset by inserting a new vacancy
+	v4 := newVacancy("New Vacancy", "Fresh Start", "A new opportunity", "Anywhere")
+	err = r.Save(ctx, v4)
+	require.NoError(t, err, "Failed to save new vacancy after purge")
+	assert.Equal(t, int64(1), v4.GetId(), "Expected new vacancy ID to start from 1 after purge")
+}
