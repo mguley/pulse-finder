@@ -252,3 +252,109 @@ func TestVacancyService_DeleteVacancy(t *testing.T) {
 		})
 	}
 }
+
+// TestVacancyService_PurgeVacancies tests the PurgeVacancies method of the VacancyServiceServer.
+//
+// This test covers the following scenarios:
+// 1. A valid request with a valid token should successfully purge all vacancies.
+// 2. A request without an Authorization header should return an Unauthenticated error.
+// 3. A request with an invalid token format should return an Unauthenticated error.
+// 4. A request with an expired token should return an Unauthenticated error.
+//
+// The test uses the SetupTestContainer function to initialize the test dependencies and ensures proper cleanup of resources.
+func TestVacancyService_PurgeVacancies(t *testing.T) {
+	client, jwtService := SetupTestContainer(t)
+
+	// Generate a valid token
+	validClaims := entity.GetTokenClaims().
+		SetIssuer("test-issuer").
+		SetScope([]string{"test"}).
+		SetExpiresAt(time.Now().Add(time.Hour).Unix())
+	validToken, err := jwtService.Generate(validClaims)
+	require.NoError(t, err, "could not generate token")
+
+	// Generate an expired token
+	expiredClaims := entity.GetTokenClaims().
+		SetIssuer("test-issuer").
+		SetScope([]string{"test"}).
+		SetExpiresAt(time.Now().Add(-time.Hour).Unix())
+	expiredToken, err := jwtService.Generate(expiredClaims)
+	require.NoError(t, err, "could not generate token")
+
+	// Pre-populate the database with some vacancies
+	ctx := metadata.NewOutgoingContext(context.Background(), metadata.Pairs("authorization", "Bearer "+validToken))
+	_, err = client.CreateVacancy(ctx, &vacancyv1.CreateVacancyRequest{
+		Title:       "Vacancy 1",
+		Company:     "Company A",
+		Description: "Description A",
+		PostedAt:    "2025-01-01",
+		Location:    "Location A",
+	})
+	require.NoError(t, err, "could not create vacancy")
+	_, err = client.CreateVacancy(ctx, &vacancyv1.CreateVacancyRequest{
+		Title:       "Vacancy 2",
+		Company:     "Company B",
+		Description: "Description B",
+		PostedAt:    "2025-01-01",
+		Location:    "Location B",
+	})
+	require.NoError(t, err, "could not create vacancy")
+
+	// Define test cases
+	tests := []struct {
+		name        string
+		token       string
+		expectedErr bool
+		errCode     codes.Code
+	}{
+		{
+			name:        "Valid Purge Request",
+			token:       validToken,
+			expectedErr: false,
+		},
+		{
+			name:        "Missing Authorization Header",
+			token:       "",
+			expectedErr: true,
+			errCode:     codes.Unauthenticated,
+		},
+		{
+			name:        "Invalid Token Format",
+			token:       "InvalidTokenFormat",
+			expectedErr: true,
+			errCode:     codes.Unauthenticated,
+		},
+		{
+			name:        "Expired Token",
+			token:       expiredToken,
+			expectedErr: true,
+			errCode:     codes.Unauthenticated,
+		},
+	}
+
+	// Execute test cases
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			if tc.token != "" {
+				ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs("authorization", "Bearer "+tc.token))
+			}
+
+			// Make the gRPC call
+			resp, err := client.PurgeVacancies(ctx, &vacancyv1.PurgeVacanciesRequest{})
+
+			if tc.expectedErr {
+				// Validate the expected error
+				require.Error(t, err, "expected an error but got none")
+				st, ok := status.FromError(err)
+				require.True(t, ok, "error is not a gRPC status")
+				assert.Equal(t, tc.errCode, st.Code(), "unexpected gRPC status code")
+			} else {
+				// Validate the response
+				require.NoError(t, err, "unexpected error")
+				assert.NotNil(t, resp, "response should not be nil")
+				assert.Equal(t, codes.OK.String(), resp.Message, "unexpected response message")
+			}
+		})
+	}
+}

@@ -214,6 +214,19 @@ func (r *PgxVacancyRepository) GetFilteredList(
 	return list, nil
 }
 
+// Purge removes all job vacancies from the database by truncating the table.
+func (r *PgxVacancyRepository) Purge(ctx context.Context) error {
+	baseQuery := `TRUNCATE TABLE job_vacancies RESTART IDENTITY CASCADE`
+
+	return r.withTransaction(ctx, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, baseQuery)
+		if err != nil {
+			return fmt.Errorf("failed to purge vacancies: %w", err)
+		}
+		return nil
+	})
+}
+
 // withTransaction manages database transactions, allowing rollback on errors and commit on success.
 func (r *PgxVacancyRepository) withTransaction(ctx context.Context, fn func(tx pgx.Tx) error) error {
 	// Start a transaction.

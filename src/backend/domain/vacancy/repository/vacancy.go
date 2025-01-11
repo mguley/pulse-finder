@@ -34,4 +34,8 @@ type VacancyRepository interface {
 		title, company string,
 		page, pageSize int,
 		sortField, sortOrder string) ([]*entity.Vacancy, error)
+
+	// Purge removes all job vacancies from the data source.
+	// Returns an error if the operation fails.
+	Purge(ctx context.Context) error
 }
