@@ -84,3 +84,8 @@ func (s *Service) ListFilteredVacancies(
 	}
 	return list, nil
 }
+
+// PurgeVacancies removes all job vacancies from the database.
+func (s *Service) PurgeVacancies(ctx context.Context) error {
+	return s.repository.Purge(ctx)
+}
