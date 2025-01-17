@@ -39,7 +39,7 @@ func (v *RequestValidator) ValidateFilters(page, size int, sort string) bool {
 	v.Check(page <= 1_000, "page", "page must be less than or equal to 1_000")
 
 	v.Check(size > 0, "size", "size must be greater than zero")
-	v.Check(size <= 100, "size", "size must be less than or equal to 100")
+	v.Check(size <= 750, "size", "size must be less than or equal to 750")
 
 	if sort != "" {
 		v.Check(v.PermittedValue(sort, v.list...), "sort", "sort contains an invalid value")
