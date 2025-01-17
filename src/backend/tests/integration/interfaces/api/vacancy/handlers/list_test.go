@@ -196,3 +196,30 @@ func TestListVacancyHandler_Pagination(t *testing.T) {
 	assert.Equal(t, "Job 6", response[0]["title"])
 	assert.Equal(t, "Job 10", response[4]["title"])
 }
+
+// TestListVacancyHandler_MaxPageSize tests that the maximum allowed page_size is accepted.
+func TestListVacancyHandler_MaxPageSize(t *testing.T) {
+	testServer := SetupTestServer(t, func(router *httprouter.Router, container *tests.TestContainer) {
+		router.HandlerFunc(http.MethodGet, "/v1/vacancies", container.ListHandler.Get().Execute)
+	})
+	defer testServer.Server.Close()
+
+	// Make the HTTP GET request with the maximum allowed page_size
+	resp, err := http.Get(testServer.Server.URL + "/v1/vacancies?page=1&page_size=750")
+	require.NoError(t, err)
+	defer func() {
+		if err = resp.Body.Close(); err != nil {
+			log.Println("failed to close response body")
+		}
+	}()
+
+	// Assert response status and body
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var response []map[string]any
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	require.NoError(t, err)
+
+	// Assert the size of the returned page matches the request
+	assert.LessOrEqual(t, len(response), 750)
+}
